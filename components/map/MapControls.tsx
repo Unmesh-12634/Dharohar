@@ -3,7 +3,7 @@
 import React from 'react';
 import { CAMERA_PRESETS } from '@/lib/geo-data';
 import { BasemapMode, ViewPreset } from '@/lib/types';
-import { Compass, Eye, Globe2, Mountain, RefreshCw, ZoomIn, ZoomOut } from 'lucide-react';
+import { Compass, Droplets, Eye, Globe2, Mountain, RefreshCw, ZoomIn, ZoomOut } from 'lucide-react';
 
 interface MapControlsProps {
   activePreset: ViewPreset;
@@ -17,6 +17,8 @@ interface MapControlsProps {
   onToggleHybridLabels?: () => void;
   show3DModels?: boolean;
   onToggle3DModels?: () => void;
+  onOpenRaindropTool?: () => void;
+  isRaindropToolOpen?: boolean;
 }
 
 export const MapControls: React.FC<MapControlsProps> = ({
@@ -31,6 +33,8 @@ export const MapControls: React.FC<MapControlsProps> = ({
   onToggleHybridLabels,
   show3DModels = true,
   onToggle3DModels,
+  onOpenRaindropTool,
+  isRaindropToolOpen = false,
 }) => {
   return (
     <div style={{
@@ -38,36 +42,60 @@ export const MapControls: React.FC<MapControlsProps> = ({
       bottom: '36px',
       left: '50%',
       transform: 'translateX(-50%)',
-      backgroundColor: 'rgba(255, 255, 255, 0.94)',
-      border: '1px solid var(--border-subtle)',
+      backgroundColor: 'rgba(250, 248, 242, 0.96)',
+      border: '1.5px solid var(--border-gold)',
       borderRadius: 'var(--radius-md)',
-      padding: '6px 12px',
+      padding: '7px 14px',
       display: 'flex',
       alignItems: 'center',
       gap: '8px',
-      boxShadow: 'var(--shadow-card)',
-      backdropFilter: 'blur(8px)',
+      boxShadow: 'var(--shadow-mewar)',
+      backdropFilter: 'blur(16px)',
       zIndex: 25,
-      maxWidth: '92vw',
+      maxWidth: '94vw',
       overflowX: 'auto',
     }}>
       {/* Watershed Mode Spotlight Button */}
       <button
         onClick={onToggleWatershedMode}
-        className={`btn ${isWatershedMode ? 'btn-primary' : 'btn-secondary'}`}
+        className={`btn apple-pressable ${isWatershedMode ? 'btn-primary' : 'btn-secondary'}`}
         style={{
           padding: '6px 12px',
           fontSize: '0.78rem',
           fontWeight: 600,
-          border: isWatershedMode ? '1px solid var(--color-forest)' : '1px solid var(--border-strong)',
+          border: isWatershedMode ? '1.5px solid var(--color-forest)' : '1px solid var(--border-gold)',
+          backgroundColor: isWatershedMode ? 'var(--color-forest)' : '#FFFFFF',
         }}
         title="Activate dedicated Watershed Mode (focuses drainage, sub-basins, and runoff pathways)"
       >
-        <Mountain size={14} />
-        {isWatershedMode ? 'Watershed Mode (Active)' : 'Watershed Mode'}
+        <Mountain size={14} color={isWatershedMode ? '#FFFFFF' : 'var(--color-forest)'} />
+        {isWatershedMode ? 'जल-विभाजक (Watershed Mode Active)' : 'जल-विभाजक (Watershed Mode)'}
       </button>
 
-      <div style={{ width: '1px', height: '22px', backgroundColor: 'var(--border-subtle)' }} />
+      {/* Virtual Raindrop Tracer Button */}
+      {onOpenRaindropTool && (
+        <button
+          onClick={onOpenRaindropTool}
+          className="btn apple-pressable"
+          style={{
+            padding: '6px 12px',
+            fontSize: '0.78rem',
+            fontWeight: 600,
+            border: isRaindropToolOpen ? '1.5px solid var(--color-terracotta)' : '1px solid var(--border-gold)',
+            backgroundColor: isRaindropToolOpen ? 'var(--color-terracotta)' : '#FFFFFF',
+            color: isRaindropToolOpen ? '#FFFFFF' : 'var(--mewar-lake)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+          }}
+          title="Launch Virtual Raindrop 3D Particle Tracer (D8 Gravity Downhill Flow)"
+        >
+          <Droplets size={14} color={isRaindropToolOpen ? '#FFFFFF' : 'var(--mewar-lake)'} />
+          {isRaindropToolOpen ? 'जल प्रवाह (Raindrop Active)' : 'जल प्रवाह (Raindrop Flow)'}
+        </button>
+      )}
+
+      <div style={{ width: '1px', height: '22px', backgroundColor: 'var(--mewar-gold)', opacity: 0.5 }} />
 
       {/* Preset pills */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

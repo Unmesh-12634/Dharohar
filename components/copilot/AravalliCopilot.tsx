@@ -132,11 +132,11 @@ export const AravalliCopilot: React.FC<AravalliCopilotProps> = ({
       top: '16px',
       right: '16px',
       width: isOpen ? '360px' : 'auto',
-      backgroundColor: 'rgba(255, 255, 255, 0.96)',
-      border: '1px solid var(--border-subtle)',
+      backgroundColor: 'rgba(253, 251, 247, 0.98)',
+      border: '1.5px solid var(--border-gold)',
       borderRadius: 'var(--radius-sm)',
-      boxShadow: 'var(--shadow-card)',
-      backdropFilter: 'blur(10px)',
+      boxShadow: 'var(--shadow-mewar)',
+      backdropFilter: 'blur(16px)',
       zIndex: 25,
       transition: 'all 0.2s ease',
       display: 'flex',
@@ -148,33 +148,35 @@ export const AravalliCopilot: React.FC<AravalliCopilotProps> = ({
         onClick={onToggle}
         style={{
           padding: '10px 14px',
-          borderBottom: isOpen ? '1px solid var(--border-subtle)' : 'none',
+          borderBottom: isOpen ? '1px solid var(--border-gold)' : 'none',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           cursor: 'pointer',
-          backgroundColor: isOpen ? 'var(--bg-card)' : 'transparent',
+          backgroundColor: isOpen ? '#FFFFFF' : 'transparent',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
           <div style={{
-            width: '24px',
-            height: '24px',
-            backgroundColor: 'var(--color-forest)',
+            width: '26px',
+            height: '26px',
+            background: 'linear-gradient(135deg, #1E3A2B 0%, #162C21 100%)',
+            border: '1px solid var(--mewar-gold)',
             borderRadius: 'var(--radius-xs)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#FFFFFF',
+            color: '#F4E8CE',
+            boxShadow: '0 2px 6px rgba(30, 58, 43, 0.25)',
           }}>
-            <Sparkles size={13} />
+            <Sparkles size={14} color="#F4E8CE" />
           </div>
           <div>
-            <div style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--color-forest)' }}>
-              ARAVALLI COPILOT
+            <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--color-forest)', letterSpacing: '0.02em' }}>
+              अरावली परामर्शदाता • COPILOT
             </div>
-            <div style={{ fontSize: '0.66rem', color: 'var(--text-tertiary)' }}>
-              Environmental Reasoning Analyst
+            <div style={{ fontSize: '0.66rem', color: 'var(--mewar-gold-dark)', fontWeight: 500 }}>
+              Mewar Watershed Intelligence & GIS AI
             </div>
           </div>
         </div>

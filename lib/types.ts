@@ -222,3 +222,116 @@ export interface TraceStep {
   consequence: string;
   recommendation: string;
 }
+
+export type AppViewMode =
+  | 'watershed-3d'
+  | 'simulation'
+  | 'satellite'
+  | 'interventions'
+  | 'field-action'
+  | 'overview';
+
+export type SatelliteSeasonId = '2021-post' | '2023-drought' | '2024-normal' | '2026-current';
+
+export interface SatelliteTimeSeriesPoint {
+  id: SatelliteSeasonId;
+  label: string;
+  year: number;
+  season: 'Pre-Monsoon' | 'Post-Monsoon' | 'Drought Phase' | 'Current';
+  date: string;
+  satellite: string;
+  ndviMean: number;
+  ndviDeltaPct: number;
+  lakeExtentSqKm: number;
+  waterSpreadDeltaPct: number;
+  bareSoilDegradedSqKm: number;
+  precipitationPrecedingMm: number;
+  imageryOverlayUrl?: string;
+  keyObservations: string;
+  detectedHotspotCount: number;
+}
+
+export interface SatelliteDegradationZone {
+  id: string;
+  name: string;
+  location: string;
+  latitude: number;
+  longitude: number;
+  elevationM: number;
+  spectralIndicator: 'NDVI Drop' | 'Water Extent Shrinkage' | 'Gully Expansion (BSI)';
+  historicalLossPct: number;
+  currentScore: number; // 0 to 1
+  priority: 'CRITICAL' | 'HIGH' | 'MODERATE';
+  groundInspectionRecommended: boolean;
+  notes: string;
+}
+
+export interface FieldObservation {
+  inspectorName: string;
+  organization: string;
+  inspectionDate: string;
+  measuredGullyDepthM: number;
+  measuredGullyWidthM: number;
+  soilCompaction: 'Loose / Highly Friable' | 'Moderate' | 'Hard Baked / Crusted';
+  soilMoistureObserved: 'Desiccated' | 'Damp' | 'Waterlogged';
+  stoneAvailabilityNearby: boolean;
+  communityConsulted: string;
+  recommendedMeasure: string;
+  fieldNotes: string;
+  photoUploaded: boolean;
+  photoUrl?: string;
+}
+
+export interface FieldMission {
+  id: string;
+  title: string;
+  riskZoneId?: string;
+  degradationZoneId?: string;
+  priority: 'CRITICAL' | 'HIGH' | 'MODERATE';
+  status: 'PENDING_INSPECTION' | 'IN_PROGRESS' | 'VERIFIED' | 'RESOLVED';
+  gramPanchayat: string;
+  village: string;
+  assignedTo: string;
+  targetCoordinates: {
+    latitude: number;
+    longitude: number;
+    elevationM: number;
+  };
+  flaggedReason: string;
+  satelliteEvidence: string;
+  requiredMeasurements: string[];
+  suggestedAction: string;
+  fieldObservations?: FieldObservation;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpstreamCatchmentTrace {
+  lakeId: string;
+  lakeName: string;
+  catchmentAreaSqKm: number;
+  mainTributaries: string[];
+  mountainOrigins: {
+    name: string;
+    latitude: number;
+    longitude: number;
+    elevationM: number;
+    role: string;
+  }[];
+  contributingRiskHotspots: {
+    id: string;
+    name: string;
+    latitude: number;
+    longitude: number;
+    soilLossTonPerYear: number;
+  }[];
+  agriculturalValleysInCorridor: {
+    id: string;
+    name: string;
+    areaHa: number;
+    soilType: string;
+  }[];
+  totalSiltDeliveryTonsPerYear: number;
+  recommendedInterventions: string[];
+}
+

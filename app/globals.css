@@ -1,57 +1,71 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Marcellus&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  /* Editorial Rajasthan Palette */
-  --bg-primary: #FAF9F6; /* Warm Ivory Off-White */
-  --bg-secondary: #F4F1EA; /* Subtle Sandstone Warm White */
-  --bg-tertiary: #EDE8DE; /* Muted Sandstone Tint */
+  /* Authentic Mewar & Udaipur Royal Architectural Palette */
+  --bg-primary: #FAF8F2; /* City Palace White Marble / Ivory */
+  --bg-secondary: #F4EFE6; /* Haveli Sandstone Warm Wash */
+  --bg-tertiary: #ECE4D4; /* Muted Jaisalmer / Mewar Sandstone */
   --bg-card: #FFFFFF;
-  --bg-card-subtle: #FAF8F5;
+  --bg-card-subtle: #FAF7F0;
+  --bg-marble: #FDFCF9;
 
   /* Text colors */
-  --text-primary: #1C2220; /* Deep Charcoal */
-  --text-secondary: #525C57; /* Warm Muted Charcoal */
-  --text-tertiary: #7F8A84; /* Light Warm Slate */
-  --text-inverse: #FAF9F6;
+  --text-primary: #1F2421; /* Deep Mewar Charcoal Slate */
+  --text-secondary: #535D56; /* Warm Basalt Slate */
+  --text-tertiary: #848D86; /* Light Sandstone Slate */
+  --text-inverse: #FAF8F2;
 
-  /* Borders & Dividers */
-  --border-subtle: #EBE5D8; /* Delicate Sandstone 1px Border */
-  --border-strong: #D9D1C1;
+  /* Regal Mewar Metals & Mineral Accents */
+  --mewar-gold: #C5A059; /* Royal Brass / Mewar Gold Leaf */
+  --mewar-gold-dark: #9E7D38;
+  --mewar-gold-light: #F4E8CE;
+  --mewar-kesariya: #D97706; /* Rajasthani Kesariya / Saffron Ochre */
+  --mewar-kesariya-bg: #FEF3C7;
+  --mewar-terracotta: #BD5637; /* Aravalli Red Soil & Haveli Brick */
+  --mewar-terracotta-bg: #FAF1ED;
+  --mewar-forest: #1E3A2B; /* Aravalli Mountain Emerald */
+  --mewar-forest-light: #2A4836;
+  --mewar-forest-bg: #EEF3EE;
+  --mewar-lake: #1B4965; /* Pichola & Fateh Sagar Deep Azure */
+  --mewar-lake-light: #2B6284;
+  --mewar-lake-bg: #EDF4F8;
+
+  /* Borders & Filigree */
+  --border-subtle: #E8DFCE; /* Delicate Sandstone 1px Border */
+  --border-strong: #D4C6AB;
+  --border-gold: rgba(197, 160, 89, 0.45);
   --border-focus: #1E3A2B;
 
-  /* Environmental Accents */
-  --color-forest: #1E3A2B; /* Aravalli Deep Forest Green */
-  --color-forest-light: #2A4836;
-  --color-forest-bg: #EEF3EE;
-  
-  --color-olive: #4A6044; /* Aravalli Ridge Olive */
+  /* Aliases for environmental palette compatibility */
+  --color-forest: var(--mewar-forest);
+  --color-forest-light: var(--mewar-forest-light);
+  --color-forest-bg: var(--mewar-forest-bg);
+  --color-olive: #4A6044;
   --color-olive-bg: #F1F4EE;
-
-  --color-lake: #245876; /* Udaipur Lake Azure / Deep Blue */
-  --color-lake-light: #377296;
-  --color-lake-bg: #EDF4F8;
-
-  --color-terracotta: #BD5637; /* Rajasthan Soil & Erosion Terracotta */
-  --color-terracotta-bg: #FAF1ED;
-
-  --color-brass: #BFA054; /* Subtle Heritage Brass / Gold Accent */
-  --color-brass-bg: #FAF7EE;
-
-  --color-amber: #D4882C;
-  --color-amber-bg: #FCF5EB;
+  --color-lake: var(--mewar-lake);
+  --color-lake-light: var(--mewar-lake-light);
+  --color-lake-bg: var(--mewar-lake-bg);
+  --color-terracotta: var(--mewar-terracotta);
+  --color-terracotta-bg: var(--mewar-terracotta-bg);
+  --color-brass: var(--mewar-gold);
+  --color-brass-bg: var(--mewar-gold-light);
+  --color-amber: var(--mewar-kesariya);
+  --color-amber-bg: var(--mewar-kesariya-bg);
 
   /* Radius & Shadows - Clean, architectural, restrained */
   --radius-xs: 3px;
   --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  --radius-md: 9px;
+  --radius-lg: 14px;
 
-  --shadow-subtle: 0 1px 3px rgba(28, 34, 32, 0.04), 0 1px 2px rgba(28, 34, 32, 0.02);
-  --shadow-card: 0 4px 16px rgba(28, 34, 32, 0.06), 0 1px 3px rgba(28, 34, 32, 0.03);
-  --shadow-popover: 0 12px 32px rgba(28, 34, 32, 0.12), 0 2px 6px rgba(28, 34, 32, 0.04);
+  --shadow-subtle: 0 1px 3px rgba(31, 36, 33, 0.04), 0 1px 2px rgba(31, 36, 33, 0.02);
+  --shadow-card: 0 4px 18px rgba(31, 36, 33, 0.07), 0 1px 3px rgba(31, 36, 33, 0.03);
+  --shadow-mewar: 0 8px 30px rgba(30, 58, 43, 0.12), 0 2px 8px rgba(197, 160, 89, 0.18);
+  --shadow-popover: 0 14px 38px rgba(31, 36, 33, 0.15), 0 3px 8px rgba(197, 160, 89, 0.12);
 
   /* Fonts */
-  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-serif: 'Cormorant Garamond', 'Marcellus', Georgia, serif;
+  --font-royal: 'Cinzel', 'Marcellus', Georgia, serif;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
@@ -83,10 +97,87 @@ body {
   letter-spacing: -0.01em;
 }
 
+.royal-title {
+  font-family: var(--font-royal);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .mono-text {
   font-family: var(--font-mono);
   font-size: 0.82rem;
   letter-spacing: -0.02em;
+}
+
+/* Mewar & Udaipur Architectural Card Styles */
+.mewar-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 18px;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.mewar-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 24px;
+  right: 24px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--mewar-gold) 35%, var(--mewar-kesariya) 50%, var(--mewar-gold) 65%, transparent 100%);
+  opacity: 0.85;
+}
+
+.mewar-card-royal {
+  background-color: #FFFFFF;
+  border: 1.5px solid var(--border-gold);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--shadow-mewar);
+  position: relative;
+}
+
+/* Mewar Cusped Arch / Mehraab Motif Banner */
+.mewar-arch-banner {
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.45) 0%, rgba(250, 248, 242, 0.95) 100%);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.mewar-arch-banner::after {
+  content: '✦';
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--mewar-gold);
+  font-size: 1.1rem;
+  opacity: 0.4;
+}
+
+/* Delicate Jaali Filigree Pattern Divider */
+.mewar-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 16px 0;
+  color: var(--mewar-gold);
+  font-size: 0.75rem;
+}
+
+.mewar-divider::before,
+.mewar-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-strong), transparent);
 }
 
 /* Custom delicate contour divider */
@@ -97,7 +188,7 @@ body {
     90deg,
     rgba(217, 209, 193, 0) 0%,
     rgba(217, 209, 193, 0.9) 20%,
-    rgba(191, 160, 84, 0.6) 50%,
+    rgba(197, 160, 89, 0.7) 50%,
     rgba(217, 209, 193, 0.9) 80%,
     rgba(217, 209, 193, 0) 100%
   );
@@ -387,4 +478,24 @@ body {
 
 .pulse-ring {
   animation: pulseSubtle 2.2s infinite ease-in-out;
+}
+
+@media print {
+  body {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+  }
+  .no-print, header, nav, .floating-launchpad, .cesium-viewer {
+    display: none !important;
+  }
+  .dpr-print-container {
+    position: static !important;
+    box-shadow: none !important;
+    border: none !important;
+    max-height: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
 }

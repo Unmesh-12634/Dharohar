@@ -29,12 +29,12 @@ export default function RootLayout({
       <head>
         <link
           rel="stylesheet"
-          href="https://cesium.com/downloads/cesiumjs/releases/1.121/Build/Cesium/Widgets/widgets.css"
+          href="https://cesium.com/downloads/cesiumjs/releases/1.128/Build/Cesium/Widgets/widgets.css"
         />
       </head>
       <body>
         <Script
-          src="https://cesium.com/downloads/cesiumjs/releases/1.121/Build/Cesium/Cesium.js"
+          src="https://cesium.com/downloads/cesiumjs/releases/1.128/Build/Cesium/Cesium.js"
           strategy="beforeInteractive"
         />
         {children}

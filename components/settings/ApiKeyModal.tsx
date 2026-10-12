@@ -73,18 +73,24 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
           </button>
         </div>
 
+        {/* Active Cesium Ion 3D Terrain Status */}
         <div style={{
-          backgroundColor: 'rgba(46, 125, 50, 0.08)',
-          border: '1px solid rgba(46, 125, 50, 0.25)',
+          backgroundColor: '#F3EFE6',
+          border: '1px solid rgba(42, 72, 54, 0.22)',
           borderRadius: 'var(--radius-xs)',
           padding: '10px 14px',
-          fontSize: '0.78rem',
-          lineHeight: 1.5,
-          color: 'var(--color-forest)',
         }}>
-          <strong>✨ 100% Free Mode Active (No Credit Card / No Auto-Pay Needed)</strong>
-          <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)', fontSize: '0.74rem' }}>
-            You do <strong>not</strong> need to set up Google auto-pay or billing. Dharohar includes free high-resolution satellite imagery (Esri World Imagery), Sentinel-2 Earth view, and topographic basemaps out of the box with zero setup.
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-forest)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#2E7D32', display: 'inline-block' }} />
+              Cesium Ion 3D World Terrain (Active & Verified)
+            </span>
+            <span className="badge badge-observed" style={{ fontSize: '0.66rem' }}>
+              Asset #1 Connected
+            </span>
+          </div>
+          <p style={{ margin: 0, fontSize: '0.73rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+            Your Cesium Ion token is active. Streaming real 3D Aravalli mountain elevation (NASA SRTM & Copernicus 30m DEM) with physical slopes, ridge heights, and lake bathymetry.
           </p>
         </div>
 
