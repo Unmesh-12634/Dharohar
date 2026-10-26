@@ -1,15 +1,26 @@
 'use client';
 
-import React from 'react';
-import { CAMERA_PRESETS } from '@/lib/geo-data';
+import React, { useState, useEffect } from 'react';
 import { BasemapMode, ViewPreset } from '@/lib/types';
-import { Compass, Droplets, Eye, Globe2, Mountain, RefreshCw, ZoomIn, ZoomOut } from 'lucide-react';
+import {
+  Compass,
+  Maximize,
+  Minimize,
+  Plus,
+  Minus,
+  RotateCcw,
+  Home,
+  Crosshair,
+  Layers,
+  Box,
+  Rotate3d,
+} from 'lucide-react';
 
 interface MapControlsProps {
   activePreset: ViewPreset;
   onSelectPreset: (preset: ViewPreset) => void;
-  isWatershedMode: boolean;
-  onToggleWatershedMode: () => void;
+  isWatershedMode?: boolean;
+  onToggleWatershedMode?: () => void;
   onResetView: () => void;
   basemapMode: BasemapMode;
   onSelectBasemap: (mode: BasemapMode) => void;
@@ -24,217 +35,556 @@ interface MapControlsProps {
 export const MapControls: React.FC<MapControlsProps> = ({
   activePreset,
   onSelectPreset,
-  isWatershedMode,
-  onToggleWatershedMode,
   onResetView,
   basemapMode,
   onSelectBasemap,
   showHybridLabels = true,
   onToggleHybridLabels,
-  show3DModels = true,
-  onToggle3DModels,
-  onOpenRaindropTool,
-  isRaindropToolOpen = false,
 }) => {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
+  const presets: { id: ViewPreset; label: string }[] = [
+    { id: 'regional', label: 'Whole Basin' },
+    { id: 'lake', label: 'Lake Pichola' },
+    { id: 'watershed', label: 'Sajjangarh Ridge' },
+    { id: 'agriculture', label: 'Nai Valley' },
+  ];
+
+  const handleZoomIn = () => {
+    const viewer = typeof window !== 'undefined' ? (window as any).__cesiumViewer : null;
+    if (viewer?.camera) {
+      const height = viewer.camera.positionCartographic?.height || 5000;
+      viewer.camera.zoomIn(Math.max(height * 0.35, 100));
+    }
+  };
+
+  const handleZoomOut = () => {
+    const viewer = typeof window !== 'undefined' ? (window as any).__cesiumViewer : null;
+    if (viewer?.camera) {
+      const height = viewer.camera.positionCartographic?.height || 5000;
+      viewer.camera.zoomOut(Math.max(height * 0.35, 100));
+    }
+  };
+
+  const handleResetOrientation = () => {
+    const viewer = typeof window !== 'undefined' ? (window as any).__cesiumViewer : null;
+    const Cesium = typeof window !== 'undefined' ? (window as any).Cesium : null;
+    if (viewer?.camera && Cesium) {
+      const currentPos = viewer.camera.positionCartographic;
+      if (currentPos) {
+        viewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromRadians(currentPos.longitude, currentPos.latitude, currentPos.height),
+          orientation: {
+            heading: 0, // Reset directly to True North
+            pitch: Cesium.Math.toRadians(-45),
+            roll: 0,
+          },
+          duration: 0.8,
+        });
+      }
+    }
+  };
+
+  const handleToggleTilt = () => {
+    const viewer = typeof window !== 'undefined' ? (window as any).__cesiumViewer : null;
+    const Cesium = typeof window !== 'undefined' ? (window as any).Cesium : null;
+    if (viewer?.camera && Cesium) {
+      const currentPos = viewer.camera.positionCartographic;
+      if (currentPos) {
+        const isPitchFlat = viewer.camera.pitch < Cesium.Math.toRadians(-70);
+        viewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromRadians(currentPos.longitude, currentPos.latitude, currentPos.height),
+          orientation: {
+            heading: viewer.camera.heading,
+            pitch: isPitchFlat ? Cesium.Math.toRadians(-35) : Cesium.Math.toRadians(-85),
+            roll: 0,
+          },
+          duration: 0.6,
+        });
+      }
+    }
+  };
+
+  const handleToggleFullscreen = () => {
+    if (typeof document !== 'undefined') {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+  };
+
   return (
-    <div style={{
-      position: 'absolute',
-      bottom: '36px',
-      left: '50%',
-      transform: 'translateX(-50%)',
-      backgroundColor: 'rgba(250, 248, 242, 0.96)',
-      border: '1.5px solid var(--border-gold)',
-      borderRadius: 'var(--radius-md)',
-      padding: '7px 14px',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      boxShadow: 'var(--shadow-mewar)',
-      backdropFilter: 'blur(16px)',
-      zIndex: 25,
-      maxWidth: '94vw',
-      overflowX: 'auto',
-    }}>
-      {/* Watershed Mode Spotlight Button */}
-      <button
-        onClick={onToggleWatershedMode}
-        className={`btn apple-pressable ${isWatershedMode ? 'btn-primary' : 'btn-secondary'}`}
+    <>
+      {/* =========================================================================
+          1. BOTTOM CENTER FLOATING TOOLBAR + SCALE BAR
+          ========================================================================= */}
+      <div
         style={{
-          padding: '6px 12px',
-          fontSize: '0.78rem',
-          fontWeight: 600,
-          border: isWatershedMode ? '1.5px solid var(--color-forest)' : '1px solid var(--border-gold)',
-          backgroundColor: isWatershedMode ? 'var(--color-forest)' : '#FFFFFF',
+          position: 'absolute',
+          bottom: '16px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '4px',
+          zIndex: 22,
+          pointerEvents: 'none',
         }}
-        title="Activate dedicated Watershed Mode (focuses drainage, sub-basins, and runoff pathways)"
       >
-        <Mountain size={14} color={isWatershedMode ? '#FFFFFF' : 'var(--color-forest)'} />
-        {isWatershedMode ? 'जल-विभाजक (Watershed Mode Active)' : 'जल-विभाजक (Watershed Mode)'}
-      </button>
-
-      {/* Virtual Raindrop Tracer Button */}
-      {onOpenRaindropTool && (
-        <button
-          onClick={onOpenRaindropTool}
-          className="btn apple-pressable"
+        {/* Main Floating Capsule Toolbar */}
+        <nav
+          aria-label="Map Navigation & Presets"
           style={{
-            padding: '6px 12px',
-            fontSize: '0.78rem',
-            fontWeight: 600,
-            border: isRaindropToolOpen ? '1.5px solid var(--color-terracotta)' : '1px solid var(--border-gold)',
-            backgroundColor: isRaindropToolOpen ? 'var(--color-terracotta)' : '#FFFFFF',
-            color: isRaindropToolOpen ? '#FFFFFF' : 'var(--mewar-lake)',
+            pointerEvents: 'auto',
+            backgroundColor: '#FFFFFF',
+            border: '1px solid var(--fine-border)',
+            borderRadius: '9999px',
+            padding: '4px 10px',
             display: 'flex',
             alignItems: 'center',
-            gap: '5px',
+            gap: '6px',
+            boxShadow: '0 6px 24px rgba(0, 0, 0, 0.10)',
+            whiteSpace: 'nowrap',
+            userSelect: 'none',
           }}
-          title="Launch Virtual Raindrop 3D Particle Tracer (D8 Gravity Downhill Flow)"
         >
-          <Droplets size={14} color={isRaindropToolOpen ? '#FFFFFF' : 'var(--mewar-lake)'} />
-          {isRaindropToolOpen ? 'जल प्रवाह (Raindrop Active)' : 'जल प्रवाह (Raindrop Flow)'}
-        </button>
-      )}
+          {/* Location Shortcuts */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+            {presets.map((p) => {
+              const isSelected = activePreset === p.id;
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => onSelectPreset(p.id)}
+                  className="apple-pressable"
+                  style={{
+                    background: isSelected ? 'var(--primary-forest)' : 'transparent',
+                    color: isSelected ? '#FFFFFF' : 'var(--primary-text)',
+                    border: 'none',
+                    borderRadius: '9999px',
+                    padding: '4px 11px',
+                    fontSize: '0.73rem',
+                    fontWeight: isSelected ? 700 : 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.12s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: '6px',
+                      height: '6px',
+                      borderRadius: '50%',
+                      backgroundColor: isSelected ? '#FFFFFF' : 'var(--primary-forest)',
+                    }}
+                  />
+                  <span>{p.label}</span>
+                </button>
+              );
+            })}
+          </div>
 
-      <div style={{ width: '1px', height: '22px', backgroundColor: 'var(--mewar-gold)', opacity: 0.5 }} />
+          {/* Separator */}
+          <div style={{ width: '1px', height: '18px', backgroundColor: 'var(--fine-border)', margin: '0 2px' }} />
 
-      {/* Preset pills */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-        <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginRight: '4px' }}>
-          Presets:
-        </span>
-        {Object.values(CAMERA_PRESETS).map((p) => {
-          const isSelected = activePreset === p.id;
-          return (
+          {/* Basemaps: Satellite | Topography | Hybrid */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
             <button
-              key={p.id}
-              onClick={() => onSelectPreset(p.id as ViewPreset)}
+              onClick={() => onSelectBasemap('satellite')}
               style={{
-                background: isSelected ? 'var(--color-forest-bg)' : 'transparent',
-                color: isSelected ? 'var(--color-forest)' : 'var(--text-secondary)',
-                border: isSelected ? '1px solid var(--color-forest)' : '1px solid transparent',
-                borderRadius: 'var(--radius-xs)',
-                padding: '4px 8px',
-                fontSize: '0.74rem',
-                fontWeight: isSelected ? 600 : 400,
+                background: basemapMode === 'satellite' ? 'var(--primary-forest)' : 'transparent',
+                color: basemapMode === 'satellite' ? '#FFFFFF' : 'var(--primary-text)',
+                border: 'none',
+                borderRadius: '9999px',
+                padding: '4px 9px',
+                fontSize: '0.71rem',
+                fontWeight: basemapMode === 'satellite' ? 700 : 500,
                 cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                transition: 'all 0.15s ease',
               }}
             >
-              {p.title}
+              Satellite
             </button>
-          );
-        })}
-      </div>
 
-      <div style={{ width: '1px', height: '22px', backgroundColor: 'var(--border-subtle)' }} />
-
-      {/* Free Basemap selection pills */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-        <span style={{ fontSize: '0.70rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginRight: '4px' }}>
-          Basemap:
-        </span>
-        {[
-          { id: 'satellite' as BasemapMode, label: '🛰️ Satellite', title: 'High-Res Photorealistic Satellite (Free Esri World Imagery - No Key Needed)' },
-          { id: 'topographic' as BasemapMode, label: '🗺️ Topo', title: 'Clean Hydrological Topographic Basemap (CartoDB)' },
-          { id: 'sentinel' as BasemapMode, label: '🌍 Earth', title: 'Sentinel-2 Cloudless Earth Multispectral' },
-          { id: 'dark' as BasemapMode, label: '🌙 Dark', title: 'Dark Contrast Mode' },
-        ].map((b) => {
-          const isSelected = basemapMode === b.id;
-          return (
             <button
-              key={b.id}
-              onClick={() => onSelectBasemap(b.id)}
-              title={b.title}
+              onClick={() => onSelectBasemap('topographic')}
               style={{
-                background: isSelected ? 'rgba(46, 125, 50, 0.12)' : 'transparent',
-                color: isSelected ? 'var(--color-forest)' : 'var(--text-secondary)',
-                border: isSelected ? '1px solid var(--color-forest)' : '1px solid transparent',
-                borderRadius: 'var(--radius-xs)',
-                padding: '3px 7px',
-                fontSize: '0.72rem',
-                fontWeight: isSelected ? 600 : 400,
+                background: basemapMode === 'topographic' ? 'var(--primary-forest)' : 'transparent',
+                color: basemapMode === 'topographic' ? '#FFFFFF' : 'var(--primary-text)',
+                border: 'none',
+                borderRadius: '9999px',
+                padding: '4px 9px',
+                fontSize: '0.71rem',
+                fontWeight: basemapMode === 'topographic' ? 700 : 500,
                 cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                transition: 'all 0.15s ease',
               }}
             >
-              {b.label}
+              Topography
             </button>
-          );
-        })}
+
+            <button
+              onClick={() => onSelectBasemap('sentinel')}
+              style={{
+                background: basemapMode === 'sentinel' ? 'var(--primary-forest)' : 'transparent',
+                color: basemapMode === 'sentinel' ? '#FFFFFF' : 'var(--primary-text)',
+                border: 'none',
+                borderRadius: '9999px',
+                padding: '4px 9px',
+                fontSize: '0.71rem',
+                fontWeight: basemapMode === 'sentinel' ? 700 : 500,
+                cursor: 'pointer',
+              }}
+            >
+              Hybrid
+            </button>
+          </div>
+
+          {/* Labels Toggle Switch */}
+          {onToggleHybridLabels && (
+            <>
+              <div style={{ width: '1px', height: '18px', backgroundColor: 'var(--fine-border)', margin: '0 2px' }} />
+              <div
+                onClick={onToggleHybridLabels}
+                className="apple-pressable"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  padding: '2px 6px',
+                }}
+              >
+                <span style={{ fontSize: '0.71rem', fontWeight: 600, color: 'var(--primary-text)' }}>
+                  Labels
+                </span>
+                <div
+                  style={{
+                    width: '26px',
+                    height: '15px',
+                    borderRadius: '9999px',
+                    backgroundColor: showHybridLabels ? 'var(--primary-forest)' : '#D1D5DB',
+                    padding: '2px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    transition: 'background-color 0.2s ease',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '11px',
+                      height: '11px',
+                      borderRadius: '50%',
+                      backgroundColor: '#FFFFFF',
+                      transform: showHybridLabels ? 'translateX(11px)' : 'translateX(0)',
+                      transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                    }}
+                  />
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Reset View */}
+          <div style={{ width: '1px', height: '18px', backgroundColor: 'var(--fine-border)', margin: '0 2px' }} />
+          <button
+            onClick={onResetView}
+            className="apple-pressable"
+            style={{
+              background: 'transparent',
+              color: 'var(--primary-text)',
+              border: 'none',
+              borderRadius: '9999px',
+              padding: '4px 8px',
+              fontSize: '0.71rem',
+              fontWeight: 500,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+            title="Reset to default basin view"
+          >
+            <RotateCcw size={12} />
+            <span>Reset View</span>
+          </button>
+
+          {/* Fullscreen Button */}
+          <button
+            onClick={handleToggleFullscreen}
+            className="apple-pressable"
+            style={{
+              background: 'transparent',
+              color: 'var(--primary-text)',
+              border: 'none',
+              borderRadius: '9999px',
+              padding: '4px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+          >
+            {isFullscreen ? <Minimize size={13} /> : <Maximize size={13} />}
+          </button>
+        </nav>
+
+        {/* 2 km Scale Bar */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '0.62rem',
+            color: '#FFFFFF',
+            textShadow: '0 1px 3px rgba(0,0,0,0.8)',
+            fontWeight: 700,
+          }}
+        >
+          <div
+            style={{
+              width: '42px',
+              height: '3px',
+              borderLeft: '1px solid #FFFFFF',
+              borderRight: '1px solid #FFFFFF',
+              borderBottom: '2px solid #FFFFFF',
+            }}
+          />
+          <span>2 km</span>
+        </div>
       </div>
 
-      <div style={{ width: '1px', height: '22px', backgroundColor: 'var(--border-subtle)' }} />
-
-      {/* 3D Real Models Toggle */}
-      {onToggle3DModels && (
-        <button
-          onClick={onToggle3DModels}
-          style={{
-            background: show3DModels ? 'var(--color-forest-bg)' : 'transparent',
-            color: show3DModels ? 'var(--color-forest)' : 'var(--text-secondary)',
-            border: show3DModels ? '1px solid var(--color-forest)' : '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-xs)',
-            padding: '3px 8px',
-            fontSize: '0.72rem',
-            fontWeight: show3DModels ? 600 : 400,
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            transition: 'all 0.15s ease',
-          }}
-          title="Toggle Authentic 3D Architectural Models of Udaipur (Monsoon Palace, City Palace, Lake Palace, Jag Mandir)"
-        >
-          <span>🏛️ 3D Models</span>
-          <span style={{ fontSize: '0.64rem', padding: '1px 4px', borderRadius: '3px', backgroundColor: show3DModels ? '#2E7D32' : 'var(--border-strong)', color: '#FFFFFF', fontWeight: 700 }}>
-            {show3DModels ? 'ON' : 'OFF'}
-          </span>
-        </button>
-      )}
-
-      {/* Hybrid Labels Overlay Toggle */}
-      {onToggleHybridLabels && (
-        <button
-          onClick={onToggleHybridLabels}
-          style={{
-            background: showHybridLabels ? 'rgba(36, 88, 118, 0.10)' : 'transparent',
-            color: showHybridLabels ? 'var(--color-lake)' : 'var(--text-secondary)',
-            border: showHybridLabels ? '1px solid var(--color-lake)' : '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-xs)',
-            padding: '3px 8px',
-            fontSize: '0.72rem',
-            fontWeight: showHybridLabels ? 600 : 400,
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            transition: 'all 0.15s ease',
-          }}
-          title="Toggle High-Resolution Street, Hill & Place Reference Labels Overlay"
-        >
-          <span>🏷️ Road/Place Labels</span>
-          <span style={{ fontSize: '0.64rem', padding: '1px 4px', borderRadius: '3px', backgroundColor: showHybridLabels ? 'var(--color-lake)' : 'var(--border-strong)', color: '#FFFFFF', fontWeight: 700 }}>
-            {showHybridLabels ? 'ON' : 'OFF'}
-          </span>
-        </button>
-      )}
-
-      <div style={{ width: '1px', height: '22px', backgroundColor: 'var(--border-subtle)' }} />
-
-      {/* Reset camera */}
-      <button
-        onClick={onResetView}
-        className="btn btn-ghost"
-        style={{ padding: '4px 8px', fontSize: '0.74rem' }}
-        title="Reset to Regional Overview"
+      {/* =========================================================================
+          2. VERTICAL GIS TOOLS STRIP (RIGHT EDGE OF MAP)
+          ========================================================================= */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '50%',
+          right: '372px', // Just to the left of Copilot inspector
+          transform: 'translateY(-50%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '6px',
+          zIndex: 22,
+          userSelect: 'none',
+        }}
       >
-        <RefreshCw size={13} />
-        Reset
-      </button>
-    </div>
+        {/* Circular Compass Rose */}
+        <button
+          onClick={handleResetOrientation}
+          className="apple-pressable"
+          style={{
+            width: '34px',
+            height: '34px',
+            borderRadius: '50%',
+            backgroundColor: '#FFFFFF',
+            border: '1px solid var(--fine-border)',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.10)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            padding: 0,
+            position: 'relative',
+          }}
+          title="Reset Heading to North (0°)"
+        >
+          <div
+            style={{
+              width: '0',
+              height: '0',
+              borderLeft: '4px solid transparent',
+              borderRight: '4px solid transparent',
+              borderBottom: '9px solid #E53E3E', // Red North needle
+              position: 'absolute',
+              top: '6px',
+            }}
+          />
+          <div
+            style={{
+              width: '0',
+              height: '0',
+              borderLeft: '4px solid transparent',
+              borderRight: '4px solid transparent',
+              borderTop: '9px solid #718096', // South needle
+              position: 'absolute',
+              bottom: '6px',
+            }}
+          />
+        </button>
+
+        {/* Vertical GIS Buttons Stack */}
+        <div
+          style={{
+            backgroundColor: '#FFFFFF',
+            border: '1px solid var(--fine-border)',
+            borderRadius: 'var(--radius-sm)',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.10)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Zoom In */}
+          <button
+            onClick={handleZoomIn}
+            className="apple-pressable"
+            style={{
+              padding: '8px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--primary-forest)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            title="Zoom In"
+          >
+            <Plus size={15} />
+          </button>
+
+          <div style={{ height: '1px', backgroundColor: 'var(--fine-border)' }} />
+
+          {/* Zoom Out */}
+          <button
+            onClick={handleZoomOut}
+            className="apple-pressable"
+            style={{
+              padding: '8px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--primary-forest)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            title="Zoom Out"
+          >
+            <Minus size={15} />
+          </button>
+
+          <div style={{ height: '1px', backgroundColor: 'var(--fine-border)' }} />
+
+          {/* Home / Return to Basin */}
+          <button
+            onClick={onResetView}
+            className="apple-pressable"
+            style={{
+              padding: '8px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--primary-text)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            title="Default Basin View"
+          >
+            <Home size={14} />
+          </button>
+
+          <div style={{ height: '1px', backgroundColor: 'var(--fine-border)' }} />
+
+          {/* Focus / Crosshair */}
+          <button
+            onClick={() => onSelectPreset('lake')}
+            className="apple-pressable"
+            style={{
+              padding: '8px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--primary-text)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            title="Center on Pichola"
+          >
+            <Crosshair size={14} />
+          </button>
+
+          <div style={{ height: '1px', backgroundColor: 'var(--fine-border)' }} />
+
+          {/* Layers shortcut */}
+          <button
+            onClick={() => onSelectPreset('watershed')}
+            className="apple-pressable"
+            style={{
+              padding: '8px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--primary-text)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            title="Sajjangarh Ridge Focus"
+          >
+            <Layers size={14} />
+          </button>
+
+          <div style={{ height: '1px', backgroundColor: 'var(--fine-border)' }} />
+
+          {/* 3D Cube / Perspective */}
+          <button
+            onClick={handleToggleTilt}
+            className="apple-pressable"
+            style={{
+              padding: '8px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--primary-text)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            title="Toggle 3D Oblique Tilt"
+          >
+            <Box size={14} />
+          </button>
+
+          <div style={{ height: '1px', backgroundColor: 'var(--fine-border)' }} />
+
+          {/* Rotate 3D */}
+          <button
+            onClick={handleResetOrientation}
+            className="apple-pressable"
+            style={{
+              padding: '8px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--primary-text)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            title="Orient North"
+          >
+            <Rotate3d size={14} />
+          </button>
+        </div>
+      </div>
+    </>
   );
 };

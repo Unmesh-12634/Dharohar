@@ -31,6 +31,7 @@ interface CesiumMapProps {
   show3DModels?: boolean;
   activeRaindropTrace?: RaindropScenario | null;
   activeRaindropStep?: RaindropTracePoint | null;
+  isVisible?: boolean;
 }
 
 // High-resolution cartographic place & road reference labels overlay provider
@@ -108,6 +109,7 @@ export const CesiumMap: React.FC<CesiumMapProps> = ({
   show3DModels = true,
   activeRaindropTrace,
   activeRaindropStep,
+  isVisible = true,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<any>(null);
@@ -116,6 +118,21 @@ export const CesiumMap: React.FC<CesiumMapProps> = ({
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isGoogleTilesActive, setIsGoogleTilesActive] = useState(false);
+
+  // Resize canvas when map becomes visible
+  useEffect(() => {
+    if (isVisible && viewerRef.current && !viewerRef.current.isDestroyed?.()) {
+      const timer = setTimeout(() => {
+        try {
+          viewerRef.current.resize();
+          viewerRef.current.scene?.requestRender();
+        } catch (e) {
+          console.warn('Cesium resize failed:', e);
+        }
+      }, 80);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible]);
 
   // Initialize Cesium Viewer
   useEffect(() => {
@@ -142,6 +159,12 @@ export const CesiumMap: React.FC<CesiumMapProps> = ({
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IlY5NVUxY0lMdHYtNUhGc1MiLCJqdGkiOiI3YjQ5OTYwNy0yYjlkLTQ0YjQtYjg2Yy1lZmFjYjAxMmY0NzQiLCJpZCI6NTIxNjkxLCJzdWIiOiJ1bm1lc2gxMjYzNCIsImlzcyI6Imh0dHBzOi8vYXBpLmNlc2l1bS5jb20iLCJhdWQiOiJEaGFyb2hhciIsImlhdCI6MTc5MTgxMjg3NH0.sqrxhHFTDDvpU2DZD4d3_eMslp37D-kWxnwUyauXA3U';
         Cesium.Ion.defaultAccessToken = cesiumIonToken;
 
+        // Modern CesiumJS 1.107+ uses baseLayer with ImageryLayer
+        const initialProvider = createImageryProvider(basemapMode, Cesium);
+        const initialBaseLayer = new Cesium.ImageryLayer(initialProvider);
+        initialBaseLayer.brightness = 1.08;
+        initialBaseLayer.contrast = 1.05;
+
         // High performance minimal viewer without bulky stock controls
         viewer = new Cesium.Viewer(containerRef.current, {
           animation: false,
@@ -155,7 +178,7 @@ export const CesiumMap: React.FC<CesiumMapProps> = ({
           navigationHelpButton: false,
           fullscreenButton: false,
           terrainProvider: new Cesium.EllipsoidTerrainProvider(),
-          imageryProvider: createImageryProvider(basemapMode, Cesium),
+          baseLayer: initialBaseLayer,
         });
 
         // Asynchronously load real 3D mountain terrain relief
@@ -207,12 +230,20 @@ export const CesiumMap: React.FC<CesiumMapProps> = ({
         // Stable rendering parameters preventing WebGL context loss and Array length overflow
         viewer.resolutionScale = 1.0;
         viewer.scene.globe.maximumScreenSpaceError = 2.0; // Safe standard error threshold
-        viewer.scene.globe.enableLighting = true;
+        viewer.scene.globe.enableLighting = false; // Preserves natural daylight clarity without dark solar shadowing
         viewer.scene.globe.depthTestAgainstTerrain = false; // Prevents labels & pins from clipping or fading behind ground
-        viewer.scene.backgroundColor = Cesium.Color.fromCssColorString('#FAF9F6');
-        viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#EDE8DE');
+        viewer.scene.backgroundColor = Cesium.Color.fromCssColorString('#F7F5EF');
+        viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#EFECE5');
+        if (viewer.scene.fog) {
+          viewer.scene.fog.enabled = true;
+          viewer.scene.fog.density = 0.00008; // Crisp atmospheric clarity without murky darkness
+          viewer.scene.fog.screenSpaceErrorFactor = 2.0;
+        }
 
         viewerRef.current = viewer;
+        if (typeof window !== 'undefined') {
+          (window as any).__cesiumViewer = viewer;
+        }
 
         // Try loading Google Photorealistic 3D Tiles ONLY if valid key is explicitly provided
         const apiKey = googleMapsApiKey || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -322,12 +353,16 @@ export const CesiumMap: React.FC<CesiumMapProps> = ({
     try {
       const provider = createImageryProvider(basemapMode, Cesium);
       viewer.imageryLayers.removeAll();
-      viewer.imageryLayers.addImageryProvider(provider);
+      const newLayer = new Cesium.ImageryLayer(provider);
+      newLayer.brightness = 1.08;
+      newLayer.contrast = 1.05;
+      viewer.imageryLayers.add(newLayer);
 
       // Add high-resolution reference place, lake, and road overlay if enabled on satellite
       if (showHybridLabels && (basemapMode === 'satellite' || basemapMode === 'sentinel')) {
         const labelsProvider = createReferenceLabelsProvider(Cesium);
-        viewer.imageryLayers.addImageryProvider(labelsProvider);
+        const labelsLayer = new Cesium.ImageryLayer(labelsProvider);
+        viewer.imageryLayers.add(labelsLayer);
       }
 
       // If Google 3D Tiles is in the scene, only show it when on satellite and active

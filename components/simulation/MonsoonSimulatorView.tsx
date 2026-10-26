@@ -2,16 +2,19 @@
 
 import React, { useState } from 'react';
 import { DEFAULT_INTERVENTIONS } from '@/lib/geo-data';
-import { runHydrologicalSimulation } from '@/lib/simulation-engine';
-import { Intervention, SimulationParams, SimulationResult } from '@/lib/types';
+import { buildActiveStormScenario, runHydrologicalSimulation } from '@/lib/simulation-engine';
+import { ActiveStormScenario, Intervention, SimulationParams, SimulationResult } from '@/lib/types';
 import {
   AlertTriangle,
   ArrowRight,
   CheckCircle,
+  CheckCircle2,
   CloudLightning,
   CloudRain,
   Compass,
   Droplets,
+  ExternalLink,
+  FileText,
   Layers,
   MapPin,
   Play,
@@ -20,6 +23,7 @@ import {
   ShieldCheck,
   Sparkles,
   Sprout,
+  Truck,
   Waves,
 } from 'lucide-react';
 
@@ -28,6 +32,9 @@ interface MonsoonSimulatorViewProps {
   activeInterventions: Intervention[];
   onSimulationComplete: (result: SimulationResult, isSimulating: boolean) => void;
   lastResult: SimulationResult | null;
+  activeStormScenario?: ActiveStormScenario;
+  onUpdateStormScenario?: (scenario: ActiveStormScenario) => void;
+  onNavigateToModule?: (module: string) => void;
 }
 
 export const MonsoonSimulatorView: React.FC<MonsoonSimulatorViewProps> = ({
@@ -35,11 +42,15 @@ export const MonsoonSimulatorView: React.FC<MonsoonSimulatorViewProps> = ({
   activeInterventions,
   onSimulationComplete,
   lastResult,
+  activeStormScenario,
+  onUpdateStormScenario,
+  onNavigateToModule,
 }) => {
-  const [rainfallMm, setRainfallMm] = useState<number>(200);
-  const [durationHours, setDurationHours] = useState<number>(3);
-  const [soilSaturation, setSoilSaturation] = useState<number>(45);
+  const [rainfallMm, setRainfallMm] = useState<number>(activeStormScenario?.rainfallMm ?? 200);
+  const [durationHours, setDurationHours] = useState<number>(activeStormScenario?.durationHours ?? 3);
+  const [soilSaturation, setSoilSaturation] = useState<number>(activeStormScenario?.soilSaturationPct ?? 45);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [appliedFeedback, setAppliedFeedback] = useState<string | null>(null);
 
   // Compute live or use last result
   const currentParams: SimulationParams = {
@@ -50,6 +61,7 @@ export const MonsoonSimulatorView: React.FC<MonsoonSimulatorViewProps> = ({
   };
 
   const computedResult = lastResult || runHydrologicalSimulation(currentParams);
+  const liveScenario = buildActiveStormScenario(currentParams, computedResult);
 
   const rainfallPresets = [
     { value: 50, label: '50 mm', desc: 'Light Monsoon Shower' },
@@ -62,8 +74,15 @@ export const MonsoonSimulatorView: React.FC<MonsoonSimulatorViewProps> = ({
 
   const durationOptions = [1, 3, 6, 12, 24];
 
+  const handleApplyScenario = () => {
+    onUpdateStormScenario?.(liveScenario);
+    setAppliedFeedback(`✓ "${liveScenario.scenarioName}" applied! Readings modulated across all Dharohar modules.`);
+    setTimeout(() => setAppliedFeedback(null), 5000);
+  };
+
   const handleSimulateAndFly = () => {
     setIsProcessing(true);
+    onUpdateStormScenario?.(liveScenario);
     setTimeout(() => {
       const result = runHydrologicalSimulation(currentParams);
       setIsProcessing(false);
@@ -107,33 +126,88 @@ export const MonsoonSimulatorView: React.FC<MonsoonSimulatorViewProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={handleSimulateAndFly}
-          disabled={isProcessing}
-          className="btn apple-pressable"
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button
+              onClick={handleApplyScenario}
+              className="btn apple-pressable"
+              style={{
+                padding: '9px 16px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                backgroundColor: 'var(--deep-green)',
+                color: '#FAF8F2',
+                border: '1.5px solid var(--antique-gold)',
+                borderRadius: 'var(--radius-xs)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '7px',
+                cursor: 'pointer',
+              }}
+              title="Apply this storm scenario across Silt Loop, Citizen Sentry, Check Dams and Heritage Crops"
+            >
+              <Sparkles size={14} color="#FCD34D" />
+              <span>⚡ Set as Active Twin Storm (Modulate All Pages)</span>
+            </button>
+
+            <button
+              onClick={handleSimulateAndFly}
+              disabled={isProcessing}
+              className="btn apple-pressable"
+              style={{
+                padding: '9px 18px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                backgroundColor: 'var(--color-terracotta)',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: 'var(--radius-xs)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 3px 10px rgba(189, 86, 55, 0.3)',
+                cursor: 'pointer',
+              }}
+            >
+              {isProcessing ? (
+                'Simulating Storm...'
+              ) : (
+                <>
+                  <Play size={15} fill="#FFFFFF" />
+                  Run Model &amp; Watch 3D Landscape
+                </>
+              )}
+            </button>
+          </div>
+
+          <div style={{ fontSize: '0.70rem', color: 'var(--text-tertiary)', textAlign: 'right' }}>
+            Active Target: <strong>{liveScenario.scenarioName}</strong> (Rainfall: {rainfallMm}mm)
+          </div>
+        </div>
+      </div>
+
+      {/* Applied Feedback Toast */}
+      {appliedFeedback && (
+        <div
           style={{
-            padding: '10px 20px',
-            fontSize: '0.86rem',
-            fontWeight: 600,
-            backgroundColor: 'var(--color-terracotta)',
-            color: '#FFFFFF',
-            border: 'none',
+            backgroundColor: '#EDF7EE',
+            border: '1px solid #BBF7D0',
+            color: '#15803D',
+            padding: '12px 18px',
+            borderRadius: 'var(--radius-xs)',
+            marginBottom: '20px',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            boxShadow: '0 3px 10px rgba(189, 86, 55, 0.3)',
+            gap: '10px',
+            fontSize: '0.82rem',
+            fontWeight: 600,
+            boxShadow: '0 4px 12px rgba(21, 128, 61, 0.1)',
           }}
         >
-          {isProcessing ? (
-            'Simulating Storm...'
-          ) : (
-            <>
-              <Play size={16} fill="#FFFFFF" />
-              Run Model & Watch 3D Landscape
-            </>
-          )}
-        </button>
-      </div>
+          <CheckCircle2 size={18} />
+          <span>{appliedFeedback}</span>
+        </div>
+      )}
 
       {/* Main Simulation Workbench (2 Columns: Controls + Model Output) */}
       <div style={{
@@ -450,6 +524,391 @@ export const MonsoonSimulatorView: React.FC<MonsoonSimulatorViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Cross-Module Cascading Impact Hub across Dharohar */}
+      <div
+        style={{
+          marginTop: '28px',
+          backgroundColor: '#FFFFFF',
+          borderRadius: 'var(--radius-md)',
+          border: '1.5px solid var(--antique-gold)',
+          padding: '24px',
+          boxShadow: 'var(--shadow-card)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '10px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="badge" style={{ backgroundColor: 'var(--deep-green)', color: '#FAF8F2', fontWeight: 700, fontSize: '0.68rem' }}>
+                LIVE TWIN IMPACT CASCADE
+              </span>
+              <span style={{ fontSize: '0.72rem', color: 'var(--antique-gold)', fontWeight: 700 }}>
+                Modulating Active Scenario: {liveScenario.scenarioName}
+              </span>
+            </div>
+            <h3 className="serif-title" style={{ fontSize: '1.4rem', color: 'var(--color-forest)', margin: '4px 0 2px' }}>
+              How This Storm Modulates Readings Across Dharohar Pages
+            </h3>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0, maxWidth: '840px' }}>
+              Simulating this storm does not stay confined here. It triggers real hydrological shifts across our Circular Silt-to-Farm Logistics, Citizen Water Sentry, Civil DPR, and Heritage Crop Market. Click any module below to inspect the modulated readings and scientific rationale:
+            </p>
+          </div>
+
+          <button
+            onClick={handleApplyScenario}
+            className="apple-pressable"
+            style={{
+              padding: '8px 16px',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              backgroundColor: 'var(--deep-green)',
+              color: '#FAF8F2',
+              borderRadius: '4px',
+              border: '1px solid var(--antique-gold)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <Sparkles size={14} color="#FCD34D" />
+            <span>Apply to All Pages</span>
+          </button>
+        </div>
+
+        {/* 5 Impact Cards Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginTop: '16px' }}>
+          {/* Card 1: Silt Loop */}
+          <div
+            style={{
+              border: '1px solid var(--fine-border)',
+              borderRadius: '6px',
+              padding: '16px',
+              backgroundColor: 'var(--surface-sandstone)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+            }}
+          >
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '4px', backgroundColor: '#EDF7EE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Truck size={16} color="#15803D" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.64rem', color: 'var(--secondary-text)', textTransform: 'uppercase', fontWeight: 700 }}>
+                    Module 1: Action Lab
+                  </div>
+                  <strong style={{ fontSize: '0.84rem', color: 'var(--primary-forest)' }}>
+                    Circular Silt-to-Farm Loop
+                  </strong>
+                </div>
+              </div>
+
+              <div style={{ backgroundColor: '#FFFFFF', padding: '10px', borderRadius: '4px', border: '1px solid var(--fine-border)', margin: '8px 0' }}>
+                <div style={{ fontSize: '0.66rem', color: 'var(--secondary-text)' }}>Modulated Storm Silt Yield:</div>
+                <div className="mono-text" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--antique-gold)' }}>
+                  +{liveScenario.lakeSiltYieldTons.toLocaleString()} <span style={{ fontSize: '0.72rem', fontWeight: 500 }}>Tons</span>
+                </div>
+                <div style={{ fontSize: '0.68rem', color: '#15803D', fontWeight: 600 }}>
+                  Harvestable stockpile in Sisarma Delta expands
+                </div>
+              </div>
+
+              <div style={{ fontSize: '0.72rem', color: 'var(--secondary-text)', lineHeight: 1.45, marginBottom: '12px' }}>
+                <strong>Why it changes:</strong> Raindrop kinetic impact (E = 0.29 · [1 - 0.72 · e^(-0.05 · I)]) detaches steep Aravalli phyllite clay, flushing nutrient-dense lacustrine silt into lake deltas for bio-fertilizer extraction.
+              </div>
+            </div>
+
+            <button
+              onClick={() => onNavigateToModule?.('silt-loop')}
+              className="apple-pressable"
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                fontSize: '0.74rem',
+                fontWeight: 700,
+                backgroundColor: 'var(--deep-green)',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+              }}
+            >
+              <span>Inspect Stockpile in Silt Loop</span>
+              <ArrowRight size={13} />
+            </button>
+          </div>
+
+          {/* Card 2: Citizen Sentry */}
+          <div
+            style={{
+              border: '1px solid var(--fine-border)',
+              borderRadius: '6px',
+              padding: '16px',
+              backgroundColor: 'var(--surface-sandstone)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+            }}
+          >
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '4px', backgroundColor: '#E0F2FE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Waves size={16} color="var(--water-blue)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.64rem', color: 'var(--secondary-text)', textTransform: 'uppercase', fontWeight: 700 }}>
+                    Module 2: Citizen Sentry
+                  </div>
+                  <strong style={{ fontSize: '0.84rem', color: 'var(--primary-forest)' }}>
+                    Lake Water Quality &amp; Ghats
+                  </strong>
+                </div>
+              </div>
+
+              <div style={{ backgroundColor: '#FFFFFF', padding: '10px', borderRadius: '4px', border: '1px solid var(--fine-border)', margin: '8px 0' }}>
+                <div style={{ fontSize: '0.66rem', color: 'var(--secondary-text)' }}>Modulated Lake Turbidity:</div>
+                <div className="mono-text" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--status-warning)' }}>
+                  {liveScenario.lakeTurbiditySurgeNtu} <span style={{ fontSize: '0.72rem', fontWeight: 500 }}>NTU</span>
+                </div>
+                <div style={{ fontSize: '0.68rem', color: 'var(--water-blue)', fontWeight: 600 }}>
+                  Lake Pichola rises +{liveScenario.lakeLevelRiseMeters}m (to {(571.8 + liveScenario.lakeLevelRiseMeters).toFixed(2)}m)
+                </div>
+              </div>
+
+              <div style={{ fontSize: '0.72rem', color: 'var(--secondary-text)', lineHeight: 1.45, marginBottom: '12px' }}>
+                <strong>Why it changes:</strong> Flash stormwater flushes colloidal sediment across Ambrai &amp; Gangaur Ghats. Secchi clarity temporarily drops from 1.8m to 0.4m until settling is complete.
+              </div>
+            </div>
+
+            <button
+              onClick={() => onNavigateToModule?.('citizen-hub')}
+              className="apple-pressable"
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                fontSize: '0.74rem',
+                fontWeight: 700,
+                backgroundColor: 'var(--deep-green)',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+              }}
+            >
+              <span>Inspect Telemetry in Citizen Hub</span>
+              <ArrowRight size={13} />
+            </button>
+          </div>
+
+          {/* Card 3: Civil DPR & Check Dams */}
+          <div
+            style={{
+              border: '1px solid var(--fine-border)',
+              borderRadius: '6px',
+              padding: '16px',
+              backgroundColor: 'var(--surface-sandstone)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+            }}
+          >
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '4px', backgroundColor: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ShieldCheck size={16} color="var(--antique-gold)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.64rem', color: 'var(--secondary-text)', textTransform: 'uppercase', fontWeight: 700 }}>
+                    Module 3: Civil DPR
+                  </div>
+                  <strong style={{ fontSize: '0.84rem', color: 'var(--primary-forest)' }}>
+                    Check Dams &amp; Interventions
+                  </strong>
+                </div>
+              </div>
+
+              <div style={{ backgroundColor: '#FFFFFF', padding: '10px', borderRadius: '4px', border: '1px solid var(--fine-border)', margin: '8px 0' }}>
+                <div style={{ fontSize: '0.66rem', color: 'var(--secondary-text)' }}>Check Dam CD-04 Capacity Load:</div>
+                <div className="mono-text" style={{ fontSize: '1.25rem', fontWeight: 800, color: liveScenario.checkDamStressPct > 80 ? 'var(--status-danger)' : 'var(--antique-gold)' }}>
+                  {liveScenario.checkDamStressPct}% <span style={{ fontSize: '0.72rem', fontWeight: 500 }}>Surcharge</span>
+                </div>
+                <div style={{ fontSize: '0.68rem', color: 'var(--secondary-text)' }}>
+                  Peak Inflow Qp: <strong>{liveScenario.peakDischargeCms} m³/s</strong>
+                </div>
+              </div>
+
+              <div style={{ fontSize: '0.72rem', color: 'var(--secondary-text)', lineHeight: 1.45, marginBottom: '12px' }}>
+                <strong>Why it changes:</strong> High runoff velocity tests masonry weir crest freeboard. Without upstream loose boulder plugs, downstream gully scour increases tenfold.
+              </div>
+            </div>
+
+            <button
+              onClick={() => onNavigateToModule?.('interventions')}
+              className="apple-pressable"
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                fontSize: '0.74rem',
+                fontWeight: 700,
+                backgroundColor: 'var(--deep-green)',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+              }}
+            >
+              <span>Inspect Stress in Civil DPR</span>
+              <ArrowRight size={13} />
+            </button>
+          </div>
+
+          {/* Card 4: Heritage Crop Market */}
+          <div
+            style={{
+              border: '1px solid var(--fine-border)',
+              borderRadius: '6px',
+              padding: '16px',
+              backgroundColor: 'var(--surface-sandstone)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+            }}
+          >
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '4px', backgroundColor: '#EDF7EE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Sprout size={16} color="#15803D" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.64rem', color: 'var(--secondary-text)', textTransform: 'uppercase', fontWeight: 700 }}>
+                    Module 4: Heritage Crops
+                  </div>
+                  <strong style={{ fontSize: '0.84rem', color: 'var(--primary-forest)' }}>
+                    Soil Moisture &amp; Crop Yields
+                  </strong>
+                </div>
+              </div>
+
+              <div style={{ backgroundColor: '#FFFFFF', padding: '10px', borderRadius: '4px', border: '1px solid var(--fine-border)', margin: '8px 0' }}>
+                <div style={{ fontSize: '0.66rem', color: 'var(--secondary-text)' }}>Vadose Soil Moisture Saturation:</div>
+                <div className="mono-text" style={{ fontSize: '1.25rem', fontWeight: 800, color: '#15803D' }}>
+                  {liveScenario.soilMoistureRechargePct}% <span style={{ fontSize: '0.72rem', fontWeight: 500 }}>Recharge</span>
+                </div>
+                <div style={{ fontSize: '0.68rem', color: '#15803D', fontWeight: 600 }}>
+                  Desi Chana &amp; Barley yields up ~18%
+                </div>
+              </div>
+
+              <div style={{ fontSize: '0.72rem', color: 'var(--secondary-text)', lineHeight: 1.45, marginBottom: '12px' }}>
+                <strong>Why it changes:</strong> Deep infiltration into red gravelly loam recharges the root zone, reducing tube-well pumping requirements by 38% and restoring soil humus.
+              </div>
+            </div>
+
+            <button
+              onClick={() => onNavigateToModule?.('heritage-crops')}
+              className="apple-pressable"
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                fontSize: '0.74rem',
+                fontWeight: 700,
+                backgroundColor: 'var(--deep-green)',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+              }}
+            >
+              <span>Inspect Recharge in Heritage Market</span>
+              <ArrowRight size={13} />
+            </button>
+          </div>
+
+          {/* Card 5: Upstream Landscape Tracer */}
+          <div
+            style={{
+              border: '1px solid var(--fine-border)',
+              borderRadius: '6px',
+              padding: '16px',
+              backgroundColor: 'var(--surface-sandstone)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+            }}
+          >
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '4px', backgroundColor: '#FAF5FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Compass size={16} color="var(--primary-forest)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.64rem', color: 'var(--secondary-text)', textTransform: 'uppercase', fontWeight: 700 }}>
+                    Module 5: Landscape Tracer
+                  </div>
+                  <strong style={{ fontSize: '0.84rem', color: 'var(--primary-forest)' }}>
+                    Crest-to-Lake Flow Velocity
+                  </strong>
+                </div>
+              </div>
+
+              <div style={{ backgroundColor: '#FFFFFF', padding: '10px', borderRadius: '4px', border: '1px solid var(--fine-border)', margin: '8px 0' }}>
+                <div style={{ fontSize: '0.66rem', color: 'var(--secondary-text)' }}>Peak Overland Stream Velocity:</div>
+                <div className="mono-text" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary-forest)' }}>
+                  {((liveScenario.intensityMmH / 22) * 1.6).toFixed(1)} <span style={{ fontSize: '0.72rem', fontWeight: 500 }}>m/s</span>
+                </div>
+                <div style={{ fontSize: '0.68rem', color: 'var(--secondary-text)' }}>
+                  Storm Transit Time: ~{Math.max(22, Math.round(85 - (liveScenario.rainfallMm / 350) * 50))} mins to Pichola
+                </div>
+              </div>
+
+              <div style={{ fontSize: '0.72rem', color: 'var(--secondary-text)', lineHeight: 1.45, marginBottom: '12px' }}>
+                <strong>Why it changes:</strong> Steep 36.4% slopes on Bansdara peak accelerate runoff kinetic energy. Overland stream vectors reach terminal velocity in Bujhra gully before hitting check dams.
+              </div>
+            </div>
+
+            <button
+              onClick={() => onNavigateToModule?.('trace')}
+              className="apple-pressable"
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                fontSize: '0.74rem',
+                fontWeight: 700,
+                backgroundColor: 'var(--deep-green)',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+              }}
+            >
+              <span>Inspect Flow Vectors in Tracer</span>
+              <ArrowRight size={13} />
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

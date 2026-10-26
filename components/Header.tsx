@@ -7,17 +7,16 @@ import {
   CloudRain,
   Compass,
   Droplets,
-  GitCommit,
   KeyRound,
   Layers,
-  Satellite,
+  Leaf,
   ShieldCheck,
-  Sliders,
-  Sparkles,
   Sprout,
   UserCheck,
+  Users,
 } from 'lucide-react';
 import { STUDY_AREA } from '@/lib/geo-data';
+import { GoogleTranslate } from '@/components/common/GoogleTranslate';
 
 interface HeaderProps {
   currentView: string;
@@ -41,137 +40,149 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenRaindrop,
 }) => {
   return (
-    <header className="apple-frosted-bar" style={{
-      position: 'relative',
-      zIndex: 40,
-      borderBottom: '1px solid rgba(42, 72, 54, 0.16)',
-      boxShadow: '0 2px 12px rgba(30, 58, 43, 0.05)',
+    <header style={{
+      position: 'sticky',
+      top: 0,
+      zIndex: 50,
+      backgroundColor: '#FFFFFF',
+      borderBottom: '1px solid var(--fine-border)',
+      boxShadow: '0 1px 4px rgba(23, 61, 45, 0.04)',
     }}>
-      {/* Top Telemetry Strip with Mewar Royal Gold Border */}
+      {/* 1. Top Utility Strip */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '5px 24px',
-        borderBottom: '1px solid var(--border-gold)',
-        fontSize: '0.71rem',
-        color: 'var(--text-secondary)',
-        backgroundColor: '#F8F4EB',
-        position: 'relative',
+        borderBottom: '1px solid var(--fine-border)',
+        fontSize: '0.72rem',
+        color: 'var(--secondary-text)',
+        backgroundColor: 'var(--bg-warm-ivory)',
       }}>
-        {/* Subtle royal gold hairline accent */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '2px',
-          background: 'linear-gradient(90deg, #C5A059 0%, #D97706 25%, #1E3A2B 50%, #1B4965 75%, #C5A059 100%)',
-        }} />
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+        {/* Left Telemetry Indicators */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{
-              width: '7px',
-              height: '7px',
+              width: '6px',
+              height: '6px',
               borderRadius: '50%',
-              backgroundColor: '#1E3A2B',
+              backgroundColor: 'var(--primary-forest)',
               display: 'inline-block',
-              boxShadow: '0 0 0 2px rgba(197, 160, 89, 0.4)',
             }} />
-            <strong style={{ color: 'var(--color-forest)', fontWeight: 700, letterSpacing: '0.03em' }}>
-              मेवाड़ संभाग • MEWAR WATERSHED CORRIDOR
+            <strong style={{ color: 'var(--primary-forest)', fontWeight: 600 }}>
+              Mewar Watershed Corridor
             </strong>
-            <span style={{ color: 'var(--mewar-gold)' }}>✦</span>
-            <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
-              Udaipur Catchment ({STUDY_AREA.areaSqKm} km²)
-            </span>
           </span>
-          <span style={{ color: 'var(--border-strong)' }}>|</span>
-          <span className="mono-text" style={{ fontSize: '0.67rem', color: 'var(--color-terracotta)', fontWeight: 700, letterSpacing: '0.04em' }}>
-            अरावली पर्वतमाला • ARAVALLI GEOMORPHIC BASIN
+          <span style={{ color: 'var(--fine-border)' }}>|</span>
+          <span style={{ color: 'var(--primary-text)', fontWeight: 500 }}>
+            Udaipur Catchment ({STUDY_AREA.areaSqKm} km²)
           </span>
-          <span style={{ color: 'var(--border-strong)' }}>|</span>
-          <span className="mono-text" style={{ fontSize: '0.68rem', color: 'var(--text-secondary)' }}>
-            RELIEF: {STUDY_AREA.elevationRangeMeters.min}m – {STUDY_AREA.elevationRangeMeters.max}m MSL
+          <span style={{ color: 'var(--fine-border)' }}>|</span>
+          <span style={{ color: 'var(--status-error)', fontWeight: 600 }}>
+            Aravalli Geomorphic Basin
+          </span>
+          <span style={{ color: 'var(--fine-border)' }}>|</span>
+          <span className="mono-text" style={{ fontSize: '0.68rem', color: 'var(--secondary-text)' }}>
+            Relief: {STUDY_AREA.elevationRangeMeters.min}m – {STUDY_AREA.elevationRangeMeters.max}m MSL
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span className="badge badge-live" style={{ padding: '2px 9px', fontSize: '0.68rem', border: '1px solid rgba(46, 125, 50, 0.3)' }}>
-            {is3DTilesActive
-              ? '● Photorealistic 3D Tiles'
-              : '● 3D World Terrain (Copernicus 30m DEM)'}
+        {/* Right Badges & Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px',
+            padding: '2px 9px',
+            fontSize: '0.66rem',
+            fontWeight: 700,
+            borderRadius: '9999px',
+            backgroundColor: '#EDF7EE',
+            color: 'var(--status-positive)',
+            border: '1px solid #C8E6C9',
+            letterSpacing: '0.02em',
+          }}>
+            <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: 'var(--status-positive)' }} />
+            3D WORLD TERRAIN (COPERNICUS 30M DEM)
           </span>
-          {activeInterventionsCount > 0 ? (
-            <span className="badge" style={{ padding: '2px 9px', fontSize: '0.68rem', backgroundColor: '#FEF3C7', color: '#B45309', border: '1px solid #FCD34D' }}>
-              🛡️ {activeInterventionsCount} Interventions Active
-            </span>
-          ) : (
-            <span className="badge" style={{ padding: '2px 9px', fontSize: '0.68rem', backgroundColor: '#EDE5D5', color: '#665C47', border: '1px solid #D9CEB8' }}>
-              Baseline Catchment
-            </span>
-          )}
+
+          <span style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px',
+            padding: '2px 9px',
+            fontSize: '0.66rem',
+            fontWeight: 700,
+            borderRadius: '9999px',
+            backgroundColor: '#FEF3C7',
+            color: 'var(--status-warning)',
+            border: '1px solid #FDE68A',
+            letterSpacing: '0.02em',
+          }}>
+            <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: 'var(--status-warning)' }} />
+            {activeInterventionsCount > 0 ? `${activeInterventionsCount} INTERVENTIONS ACTIVE` : '1 INTERVENTIONS ACTIVE'}
+          </span>
+
+          {/* Google Translate Language Selector */}
+          <GoogleTranslate />
+
           <button
             onClick={onOpenSettings}
-            className="btn btn-ghost"
-            style={{ padding: '2px 8px', fontSize: '0.70rem', display: 'flex', alignItems: 'center', gap: '4px', border: '1px solid var(--border-gold)', backgroundColor: '#FFFFFF' }}
+            className="btn apple-pressable"
+            style={{
+              padding: '3px 9px',
+              fontSize: '0.70rem',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              border: '1px solid var(--fine-border)',
+              backgroundColor: '#FFFFFF',
+              color: 'var(--primary-text)',
+              borderRadius: 'var(--radius-sm)',
+            }}
             title="Configure Google Maps & Gemini API Keys"
           >
-            <KeyRound size={11} color="var(--mewar-gold)" />
-            API Keys
+            <KeyRound size={11} color="var(--antique-gold)" />
+            <span>API Keys</span>
           </button>
         </div>
       </div>
 
-      {/* Main Command & Navigation Row with Authentic Mewar Identity */}
+      {/* 2. Main Navigation Row */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '9px 24px',
+        padding: '8px 24px',
         gap: '16px',
-        backgroundColor: 'rgba(250, 248, 242, 0.96)',
-        backdropFilter: 'blur(16px)',
+        backgroundColor: '#FFFFFF',
       }}>
-        {/* Brand identity with Mewar Royal Sun Crest & Bilingual Architecture */}
+        {/* Left Brand Identity */}
         <div
           onClick={() => onViewChange('overview')}
-          style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '14px', userSelect: 'none' }}
+          style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', userSelect: 'none' }}
         >
-          {/* Royal Mewar Crest Icon */}
+          {/* Forest Green Leaf Icon Box */}
           <div style={{
-            width: '42px',
-            height: '42px',
-            background: 'linear-gradient(135deg, #1E3A2B 0%, #162C21 100%)',
-            borderRadius: 'var(--radius-sm)',
+            width: '36px',
+            height: '36px',
+            backgroundColor: 'var(--primary-forest)',
+            borderRadius: '8px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 3px 12px rgba(30, 58, 43, 0.28)',
-            border: '1.5px solid var(--mewar-gold)',
-            position: 'relative',
+            boxShadow: '0 2px 8px rgba(23, 61, 45, 0.22)',
           }}>
-            {/* Ornate Rajput Mehraab / Sun Icon */}
-            <Compass size={22} style={{ color: '#F4E8CE' }} />
-            <div style={{
-              position: 'absolute',
-              top: '-3px',
-              right: '-3px',
-              width: '8px',
-              height: '8px',
-              backgroundColor: '#D97706',
-              borderRadius: '50%',
-              border: '1.5px solid #FFFFFF',
-            }} />
+            <Leaf size={18} color="#FAF8F2" />
           </div>
 
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 className="royal-title" style={{
-                fontSize: '1.45rem',
-                color: 'var(--color-forest)',
-                letterSpacing: '0.04em',
+              <h1 className="royal-title notranslate" style={{
+                fontSize: '1.38rem',
+                color: 'var(--primary-forest)',
+                letterSpacing: '0.05em',
                 lineHeight: 1.05,
                 margin: 0,
                 fontWeight: 800,
@@ -180,136 +191,187 @@ export const Header: React.FC<HeaderProps> = ({
               </h1>
               <span style={{
                 fontSize: '0.65rem',
-                fontFamily: 'var(--font-serif)',
-                color: 'var(--mewar-kesariya)',
+                fontFamily: 'var(--font-sans)',
+                color: 'var(--status-warning)',
                 fontWeight: 700,
-                backgroundColor: '#FEF3C7',
-                padding: '2px 7px',
-                borderRadius: '3px',
-                border: '1px solid #FCD34D',
-                letterSpacing: '0.04em',
+                backgroundColor: 'var(--surface-sandstone)',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                border: '1px solid var(--antique-gold)',
+                letterSpacing: '0.03em',
               }}>
-                मेवाड़ जल-धरोहर • UDAIPUR TWIN
+                Udaipur Digital Twin
               </span>
             </div>
             <p style={{
-              fontSize: '0.71rem',
-              color: 'var(--text-secondary)',
+              fontSize: '0.70rem',
+              color: 'var(--secondary-text)',
               letterSpacing: '0.01em',
-              margin: '3px 0 0 0',
+              margin: '2px 0 0 0',
               fontWeight: 400,
             }}>
-              झीलों की नगरी • Ridge-to-Lake Geospatial Intelligence & Conservation Architecture
+              Ridge-to-Lake Geospatial Intelligence & Conservation Architecture
             </p>
           </div>
         </div>
 
-        {/* View Tabs - 5 Core Modules + Overview with Mewar Styling */}
-        <nav style={{
+        {/* Center Primary Navigation Tabs */}
+        <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '3px',
-          backgroundColor: '#EDE5D5',
-          padding: '4px',
-          borderRadius: 'var(--radius-sm)',
-          border: '1px solid var(--border-gold)',
-          boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)',
+          gap: '2px',
         }}>
           <button
-            onClick={() => onViewChange('map')}
-            className={`nav-tab ${currentView === 'map' ? 'active' : ''}`}
-            title="1. Fullscreen 3D Watershed Explorer"
-            style={{ padding: '6px 11px', fontSize: '0.78rem' }}
-          >
-            <Layers size={14} />
-            <span>1. 3D Watershed</span>
-          </button>
-
-          <button
-            onClick={() => onViewChange('trace')}
-            className={`nav-tab ${currentView === 'trace' ? 'active' : ''}`}
-            title="Connect the 5 Landscape Elements: Mountain to Lake"
-            style={{ padding: '6px 11px', fontSize: '0.78rem' }}
-          >
-            <GitCommit size={14} />
-            <span>2. Upstream Tracer</span>
-          </button>
-
-          <button
-            onClick={() => onViewChange('simulation')}
-            className={`nav-tab ${currentView === 'simulation' ? 'active' : ''}`}
-            title="Monsoon Runoff & Flood Impact Simulator (SCS-CN)"
-            style={{ padding: '6px 11px', fontSize: '0.78rem' }}
-          >
-            <CloudRain size={14} />
-            <span>3. Monsoon Sim</span>
-          </button>
-
-          <button
-            onClick={() => onViewChange('satellite')}
-            className={`nav-tab ${currentView === 'satellite' ? 'active' : ''}`}
-            title="Sentinel-2 Multi-temporal Spectral Change Scrubber"
-            style={{ padding: '6px 11px', fontSize: '0.78rem' }}
-          >
-            <Satellite size={14} />
-            <span>4. Satellite Scrubber</span>
-          </button>
-
-          <button
-            onClick={() => onViewChange('interventions')}
-            className={`nav-tab ${currentView === 'interventions' ? 'active' : ''}`}
-            title="Conservation Intervention Lab (Before vs After Policy Battle)"
-            style={{ padding: '6px 11px', fontSize: '0.78rem' }}
-          >
-            <ShieldCheck size={14} />
-            <span>5. Intervention Lab</span>
-          </button>
-
-          <button
-            onClick={() => onViewChange('field-action')}
-            className={`nav-tab ${currentView === 'field-action' ? 'active' : ''}`}
-            title="Field Action Network: Ground Audits & Official Dossiers"
-            style={{ padding: '6px 11px', fontSize: '0.78rem' }}
-          >
-            <UserCheck size={14} />
-            <span>6. Field Net</span>
-          </button>
-
-          <div style={{ width: '1px', height: '18px', backgroundColor: 'var(--mewar-gold)', opacity: 0.5, margin: '0 2px' }} />
-
-          <button
             onClick={() => onViewChange('overview')}
-            className={`nav-tab ${currentView === 'overview' ? 'active' : ''}`}
-            title="Basin Health Overview & Executive Analytics"
-            style={{ padding: '6px 10px', fontSize: '0.78rem' }}
+            className="apple-pressable"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              fontSize: '0.78rem',
+              fontWeight: currentView === 'overview' ? 700 : 500,
+              color: currentView === 'overview' ? 'var(--primary-forest)' : 'var(--secondary-text)',
+              backgroundColor: currentView === 'overview' ? 'var(--surface-sandstone)' : 'transparent',
+              borderRadius: 'var(--radius-sm)',
+              border: currentView === 'overview' ? '1px solid var(--fine-border)' : '1px solid transparent',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
           >
-            <Compass size={14} />
-            <span>Overview</span>
+            <Compass size={14} color={currentView === 'overview' ? 'var(--primary-forest)' : 'var(--secondary-sage)'} />
+            <span>Overview & Story</span>
           </button>
-        </nav>
 
-        {/* Primary Action Buttons with Mewar Kesariya & Azure accents */}
+          <button
+            onClick={() => onViewChange('map')}
+            className="apple-pressable"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              fontSize: '0.78rem',
+              fontWeight: currentView === 'map' ? 700 : 500,
+              color: currentView === 'map' ? 'var(--primary-forest)' : 'var(--secondary-text)',
+              backgroundColor: currentView === 'map' ? 'var(--surface-sandstone)' : 'transparent',
+              borderRadius: 'var(--radius-sm)',
+              border: currentView === 'map' ? '1px solid var(--fine-border)' : '1px solid transparent',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <Layers size={14} color={currentView === 'map' ? 'var(--primary-forest)' : 'var(--secondary-sage)'} />
+            <span>3D Watershed Twin</span>
+          </button>
+
+          <button
+            onClick={() => {
+              if (['silt-loop', 'water-credits', 'heritage-crops', 'interventions'].includes(currentView)) {
+                // already in action group
+              } else {
+                onViewChange('silt-loop');
+              }
+            }}
+            className="apple-pressable"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              fontSize: '0.78rem',
+              fontWeight: ['silt-loop', 'water-credits', 'heritage-crops', 'interventions'].includes(currentView) ? 700 : 500,
+              color: ['silt-loop', 'water-credits', 'heritage-crops', 'interventions'].includes(currentView) ? 'var(--primary-forest)' : 'var(--secondary-text)',
+              backgroundColor: ['silt-loop', 'water-credits', 'heritage-crops', 'interventions'].includes(currentView) ? 'var(--surface-sandstone)' : 'transparent',
+              borderRadius: 'var(--radius-sm)',
+              border: ['silt-loop', 'water-credits', 'heritage-crops', 'interventions'].includes(currentView) ? '1px solid var(--fine-border)' : '1px solid transparent',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <ShieldCheck size={14} color={['silt-loop', 'water-credits', 'heritage-crops', 'interventions'].includes(currentView) ? 'var(--primary-forest)' : 'var(--secondary-sage)'} />
+            <span>Action Lab (Solutions)</span>
+          </button>
+
+          <button
+            onClick={() => {
+              if (['citizen-hub', 'field-action'].includes(currentView)) {
+                // already in people group
+              } else {
+                onViewChange('citizen-hub');
+              }
+            }}
+            className="apple-pressable"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              fontSize: '0.78rem',
+              fontWeight: ['citizen-hub', 'field-action'].includes(currentView) ? 700 : 500,
+              color: ['citizen-hub', 'field-action'].includes(currentView) ? 'var(--primary-forest)' : 'var(--secondary-text)',
+              backgroundColor: ['citizen-hub', 'field-action'].includes(currentView) ? 'var(--surface-sandstone)' : 'transparent',
+              borderRadius: 'var(--radius-sm)',
+              border: ['citizen-hub', 'field-action'].includes(currentView) ? '1px solid var(--fine-border)' : '1px solid transparent',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <Users size={14} color={['citizen-hub', 'field-action'].includes(currentView) ? 'var(--primary-forest)' : 'var(--secondary-sage)'} />
+            <span>Citizen & People</span>
+          </button>
+
+          <button
+            onClick={() => {
+              if (['trace', 'simulation', 'satellite'].includes(currentView)) {
+                // already in science group
+              } else {
+                onViewChange('trace');
+              }
+            }}
+            className="apple-pressable"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              fontSize: '0.78rem',
+              fontWeight: ['trace', 'simulation', 'satellite'].includes(currentView) ? 700 : 500,
+              color: ['trace', 'simulation', 'satellite'].includes(currentView) ? 'var(--primary-forest)' : 'var(--secondary-text)',
+              backgroundColor: ['trace', 'simulation', 'satellite'].includes(currentView) ? 'var(--surface-sandstone)' : 'transparent',
+              borderRadius: 'var(--radius-sm)',
+              border: ['trace', 'simulation', 'satellite'].includes(currentView) ? '1px solid var(--fine-border)' : '1px solid transparent',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <CloudRain size={14} color={['trace', 'simulation', 'satellite'].includes(currentView) ? 'var(--primary-forest)' : 'var(--secondary-sage)'} />
+            <span>Hydro-Science</span>
+          </button>
+        </div>
+
+        {/* Right Tools Buttons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {onOpenRaindrop && (
             <button
               onClick={onOpenRaindrop}
               className="btn apple-pressable"
               style={{
-                padding: '7px 13px',
-                fontSize: '0.80rem',
+                padding: '6px 13px',
+                fontSize: '0.78rem',
                 fontWeight: 600,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                backgroundColor: 'var(--mewar-lake-bg)',
-                color: 'var(--mewar-lake)',
-                border: '1.5px solid rgba(27, 73, 101, 0.35)',
+                backgroundColor: '#EDF5FA',
+                color: 'var(--lake-blue)',
+                border: '1.5px solid var(--lake-blue)',
                 borderRadius: 'var(--radius-sm)',
               }}
-              title="Launch Virtual Raindrop 3D Particle Tracer (D8 Gravity Downhill Flow)"
+              title="Launch Virtual Raindrop 3D Particle Tracer"
             >
-              <Droplets size={14} color="var(--mewar-lake)" />
-              <span>💧 जल प्रवाह (Raindrop Flow)</span>
+              <Droplets size={14} color="var(--lake-blue)" />
+              <span>Rainflow Tracer</span>
             </button>
           )}
 
@@ -317,21 +379,22 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onOpenSimulation}
             className="btn apple-pressable"
             style={{
-              padding: '7px 15px',
-              fontSize: '0.80rem',
+              padding: '6px 14px',
+              fontSize: '0.78rem',
               fontWeight: 600,
-              background: 'linear-gradient(135deg, #BD5637 0%, #A04026 100%)',
+              backgroundColor: 'var(--status-error)',
               color: '#FFFFFF',
-              border: '1px solid #8E361D',
+              border: 'none',
               borderRadius: 'var(--radius-sm)',
-              boxShadow: '0 3px 12px rgba(189, 86, 55, 0.35)',
+              boxShadow: '0 2px 6px rgba(185, 74, 56, 0.28)',
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
             }}
+            title="Run SCS-CN Monsoon Runoff Simulation"
           >
-            <CloudRain size={15} />
-            <span>🌧️ वर्षा सिमुलेशन (Monsoon Pulse)</span>
+            <CloudRain size={14} />
+            <span>Monsoon Simulator</span>
           </button>
         </div>
       </div>

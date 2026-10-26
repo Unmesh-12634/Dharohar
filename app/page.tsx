@@ -5,6 +5,8 @@ import { Header } from '@/components/Header';
 import { CesiumMap } from '@/components/map/CesiumMap';
 import { LayerPanel } from '@/components/map/LayerPanel';
 import { MapControls } from '@/components/map/MapControls';
+import { MapTopBar } from '@/components/map/MapTopBar';
+import { MapLegend } from '@/components/map/MapLegend';
 import { AravalliCopilot } from '@/components/copilot/AravalliCopilot';
 import { RainSimulationModal } from '@/components/simulation/RainSimulationModal';
 import { MonsoonSimulatorView } from '@/components/simulation/MonsoonSimulatorView';
@@ -13,10 +15,15 @@ import { CauseEffectExplorer } from '@/components/explorer/CauseEffectExplorer';
 import { SatelliteChangeDetector } from '@/components/satellite/SatelliteChangeDetector';
 import { FieldActionNetwork } from '@/components/field/FieldActionNetwork';
 import { OverviewView } from '@/components/dashboard/OverviewView';
+import { Sidebar } from '@/components/dashboard/Sidebar';
 import { EarthHealthView } from '@/components/dashboard/EarthHealthView';
 import { FutureLabView } from '@/components/dashboard/FutureLabView';
 import { ImpactView } from '@/components/dashboard/ImpactView';
 import { FarmIntelligenceView } from '@/components/dashboard/FarmIntelligenceView';
+import { SiltCircularEconomy } from '@/components/action/SiltCircularEconomy';
+import { WaterCreditsPES } from '@/components/action/WaterCreditsPES';
+import { JalChowkidarCitizenHub } from '@/components/citizen/JalChowkidarCitizenHub';
+import { HeritageCropMarket } from '@/components/action/HeritageCropMarket';
 import { ApiKeyModal } from '@/components/settings/ApiKeyModal';
 import {
   VirtualRaindropTool,
@@ -26,6 +33,7 @@ import {
 } from '@/components/tools/VirtualRaindropTool';
 import { DEFAULT_INTERVENTIONS, DEFAULT_LAYERS } from '@/lib/geo-data';
 import {
+  ActiveStormScenario,
   BasemapMode,
   FieldMission,
   Intervention,
@@ -35,7 +43,7 @@ import {
   TraceStep,
   ViewPreset,
 } from '@/lib/types';
-import { runHydrologicalSimulation } from '@/lib/simulation-engine';
+import { getDefaultStormScenario, runHydrologicalSimulation } from '@/lib/simulation-engine';
 import {
   Bot,
   CloudRain,
@@ -58,7 +66,7 @@ import {
 } from 'lucide-react';
 
 export default function HomePage() {
-  const [currentView, setCurrentView] = useState<string>('map');
+  const [currentView, setCurrentView] = useState<string>('overview');
   const [panelMode, setPanelMode] = useState<'docked' | 'split' | 'fullscreen'>('docked');
   const [activePreset, setActivePreset] = useState<ViewPreset>('udaipur');
   const [isWatershedMode, setIsWatershedMode] = useState<boolean>(false);
@@ -91,11 +99,12 @@ export default function HomePage() {
   const [isSimulationModalOpen, setIsSimulationModalOpen] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
   const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
+  const [activeStormScenario, setActiveStormScenario] = useState<ActiveStormScenario>(getDefaultStormScenario);
 
   // Feature inspector state
   const [selectedFeature, setSelectedFeature] = useState<any | null>(null);
 
-  // Copilot state
+  // Copilot state (open by default to match GIS workspace)
   const [isCopilotOpen, setIsCopilotOpen] = useState(true);
 
   // Settings & Keys state
@@ -183,14 +192,19 @@ export default function HomePage() {
   const [dispatchedMissions, setDispatchedMissions] = useState<FieldMission[]>([]);
   const [selectedLakeTraceId, setSelectedLakeTraceId] = useState<string>('pichola');
 
-  // Handle fly to arbitrary coordinates from any view
-  const handleFlyToCoords = (coords: { latitude: number; longitude: number; height?: number }) => {
+  // Handle fly to arbitrary coordinates from any view (only switches to map if explicitly requested)
+  const handleFlyToCoords = (
+    coords: { latitude: number; longitude: number; height?: number },
+    options?: { navigateToMap?: boolean }
+  ) => {
     setFlyToTarget({
       latitude: coords.latitude,
       longitude: coords.longitude,
       height: coords.height || 1800,
     });
-    setCurrentView('map');
+    if (options?.navigateToMap) {
+      setCurrentView('map');
+    }
   };
 
   // Dispatch satellite anomaly into Field Action Network
@@ -285,19 +299,37 @@ export default function HomePage() {
         }}
       />
 
-      {/* Main View Area */}
-      <main style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-        {/* 3D Digital Twin Map View - Always persistently active */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          visibility: 'visible',
-          zIndex: 1,
-        }}>
-          <CesiumMap
+      {/* Main View Area with Persistent Left Sidebar */}
+      <main style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'row' }}>
+        {/* Apple-grade Left Navigation & Layer Sidebar (Persistent across entire application) */}
+        <Sidebar
+          currentView={currentView}
+          onViewChange={(v) => setCurrentView(v)}
+          onOpenSettings={() => setIsSettingsModalOpen(true)}
+          activeLayers={activeLayers}
+          onToggleLayer={handleToggleLayer}
+          onScrollToSection={(sectionId) => {
+            if (currentView !== 'overview') setCurrentView('overview');
+            setTimeout(() => {
+              const el = document.getElementById(sectionId);
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+          }}
+        />
+
+        {/* Workspace Canvas (Occupies full space to the right of Sidebar) */}
+        <div style={{ flex: 1, position: 'relative', height: '100%', overflow: 'hidden' }}>
+          {/* 3D Digital Twin Map View - Always persistently active */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: currentView === 'map' ? 'block' : 'none',
+            zIndex: 1,
+          }}>
+            <CesiumMap
             activeLayers={activeLayers}
             activePreset={activePreset}
             onSelectFeature={(feat) => setSelectedFeature(feat)}
@@ -313,109 +345,41 @@ export default function HomePage() {
             show3DModels={show3DModels}
             activeRaindropTrace={activeRaindropScenario}
             activeRaindropStep={activeRaindropStep}
+            isVisible={currentView === 'map'}
           />
 
-          {/* Quick HUD Launchpad when exploring 3D Map */}
-          {currentView === 'map' && (
-            <div style={{
-              position: 'absolute',
-              top: '16px',
-              right: isCopilotOpen ? '375px' : '18px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px',
-              backgroundColor: 'rgba(253, 251, 247, 0.96)',
-              backdropFilter: 'blur(16px)',
-              border: '1.5px solid var(--border-gold)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '4px 10px',
-              boxShadow: 'var(--shadow-mewar)',
-              zIndex: 25,
-              transition: 'right 0.25s ease',
-            }}>
-              <span style={{ fontSize: '0.67rem', fontWeight: 700, color: 'var(--mewar-gold-dark)', textTransform: 'uppercase', marginRight: '4px', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                <span>✦</span>
-                <span>मेवाड़ हब:</span>
-              </span>
-              <button
-                onClick={() => {
-                  setIsRaindropToolOpen((prev) => !prev);
-                  if (!activeRaindropScenario) {
-                    setActiveRaindropScenario(RAINDROP_SCENARIOS[0]);
-                    setActiveRaindropStep(RAINDROP_SCENARIOS[0].path[0]);
-                  }
+
+
+            {/* Top Search & Mode Switcher Bar */}
+            {currentView === 'map' && (
+              <MapTopBar
+                onSearch={(q) => {
+                  console.info('Spatial search:', q);
                 }}
-                className={`btn apple-pressable ${isRaindropToolOpen ? 'btn-terracotta' : 'btn-ghost'}`}
-                style={{ padding: '3px 8px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-                title="Launch Virtual Raindrop 3D Particle Tracer (D8 Gravity Downhill Flow)"
-              >
-                <Droplets size={12} color={isRaindropToolOpen ? '#FFFFFF' : 'var(--mewar-lake)'} />
-                जल प्रवाह
-              </button>
-              <button
-                onClick={() => { setCurrentView('trace'); setPanelMode('docked'); }}
-                className="btn btn-ghost apple-pressable"
-                style={{ padding: '3px 8px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-                title="Open 3D Upstream Landscape Tracer"
-              >
-                <GitCommit size={12} color="var(--color-terracotta)" />
-                प्रवाह अनुरेखक
-              </button>
-              <button
-                onClick={() => { setCurrentView('simulation'); setPanelMode('docked'); }}
-                className="btn btn-ghost apple-pressable"
-                style={{ padding: '3px 8px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-                title="Open Monsoon Runoff Simulator"
-              >
-                <CloudRain size={12} color="var(--mewar-lake)" />
-                मानसून सिमुलेशन
-              </button>
-              <button
-                onClick={() => { setCurrentView('satellite'); setPanelMode('docked'); }}
-                className="btn btn-ghost apple-pressable"
-                style={{ padding: '3px 8px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-                title="Open Sentinel-2 Satellite Change Scrubber"
-              >
-                <Satellite size={12} color="var(--color-forest)" />
-                उपग्रह संवेदक
-              </button>
-              <button
-                onClick={() => { setCurrentView('interventions'); setPanelMode('docked'); }}
-                className="btn btn-ghost apple-pressable"
-                style={{ padding: '3px 8px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-                title="Open Conservation Intervention Lab"
-              >
-                <ShieldCheck size={12} color="var(--mewar-gold)" />
-                संरक्षण योजना
-              </button>
-              <button
-                onClick={() => { setCurrentView('field-action'); setPanelMode('docked'); }}
-                className="btn btn-ghost apple-pressable"
-                style={{ padding: '3px 8px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-                title="Open Field Action Network & Ground Verification"
-              >
-                <UserCheck size={12} color="var(--color-terracotta)" />
-                ग्राम निरीक्षण
-              </button>
-            </div>
-          )}
+              />
+            )}
 
-          {/* Floating Layers Panel on Left */}
+            {/* Floating Layers Panel on Left */}
+            {currentView === 'map' && (
+              <LayerPanel
+                activeLayers={activeLayers}
+                onToggleLayer={handleToggleLayer}
+                selectedYear={selectedYear}
+                onYearChange={(y) => setSelectedYear(y)}
+              />
+            )}
+
+            {/* Map Legend on Bottom-Left */}
+            {currentView === 'map' && (
+              <MapLegend />
+            )}
+
+          {/* Floating Navigation, Camera Controls & Basemap Switcher at Bottom (Only on 3D Map) */}
           {currentView === 'map' && (
-            <LayerPanel
-              activeLayers={activeLayers}
-              onToggleLayer={handleToggleLayer}
-              selectedYear={selectedYear}
-              onYearChange={(y) => setSelectedYear(y)}
-            />
-          )}
-
-          {/* Floating Navigation, Camera Controls & Basemap Switcher at Bottom */}
-          {(currentView === 'map' || panelMode === 'docked') && (
             <div style={{
               position: 'absolute',
               bottom: 0,
-              left: currentView !== 'map' && panelMode === 'docked' ? 'min(680px, 94vw)' : 0,
+              left: 0,
               right: 0,
               pointerEvents: 'none',
               zIndex: 22,
@@ -456,22 +420,22 @@ export default function HomePage() {
             apiKey={geminiKey}
           />
 
-          {/* Editorial Geospatial Intelligence Dossier Drawer */}
-          {selectedFeature && (
+          {/* Editorial Geospatial Intelligence Dossier Drawer (Only visible on 3D Map, offset to prevent overlap) */}
+          {currentView === 'map' && selectedFeature && (
             <div style={{
               position: 'absolute',
-              bottom: '84px',
-              left: '18px',
-              width: '390px',
-              maxHeight: 'calc(100vh - 160px)',
+              bottom: '96px',
+              left: '320px',
+              width: 'min(400px, calc(100vw - 350px))',
+              maxHeight: 'calc(100vh - 180px)',
               overflowY: 'auto',
-              backgroundColor: 'rgba(255, 255, 255, 0.97)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-sm)',
-              boxShadow: 'var(--shadow-card)',
+              backgroundColor: 'rgba(255, 255, 255, 0.98)',
+              border: '1px solid var(--border-gold)',
+              borderRadius: 'var(--radius-md)',
+              boxShadow: 'var(--shadow-lg)',
               padding: '16px 18px',
               zIndex: 35,
-              backdropFilter: 'blur(12px)',
+              backdropFilter: 'blur(20px)',
             }}>
               {/* Drawer Top Header */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
@@ -705,232 +669,288 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* Adaptive Tactical HUD Panel */}
-        {currentView !== 'map' && (
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: panelMode === 'fullscreen' ? '100%' : panelMode === 'split' ? '50%' : 'min(720px, 94vw)',
-            bottom: 0,
-            overflowY: 'hidden',
-            backgroundColor: panelMode === 'fullscreen' ? 'var(--bg-primary)' : 'rgba(250, 249, 246, 0.96)',
-            backdropFilter: 'blur(16px)',
-            borderRight: panelMode === 'fullscreen' ? 'none' : '1px solid rgba(42, 72, 54, 0.20)',
-            boxShadow: panelMode === 'fullscreen' ? 'none' : '6px 0 28px rgba(30, 58, 43, 0.14)',
-            zIndex: 25,
-            transition: 'width 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
-            display: 'flex',
-            flexDirection: 'column',
-          }}>
-            {/* Tactical Panel Top Header Bar */}
+          {/* Full-Screen Workspace Pages (Zero Background Map Overlap) */}
+          {currentView !== 'map' && (
             <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '9px 20px',
-              borderBottom: '1px solid var(--border-gold)',
-              backgroundColor: 'rgba(250, 248, 242, 0.98)',
-              position: 'sticky',
+              position: 'absolute',
               top: 0,
-              zIndex: 35,
-              backdropFilter: 'blur(16px)',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: '100%',
+              overflowY: 'auto',
+              backgroundColor: 'var(--bg-warm-ivory)',
+              zIndex: 30,
+              display: 'flex',
+              flexDirection: 'column',
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="badge badge-observed" style={{ fontSize: '0.68rem', letterSpacing: '0.04em', border: '1px solid var(--border-gold)' }}>
-                  {currentView === 'trace' ? '२. भू-प्रवाह अनुरेखक (Upstream Tracer)' :
-                   currentView === 'simulation' ? '३. मानसून प्रभाव सिमुलेटर (Monsoon Sim)' :
-                   currentView === 'satellite' ? '४. उपग्रह परिवर्तन संवेदक (Satellite Scrubber)' :
-                   currentView === 'interventions' ? '५. संरक्षण कार्यशाला (Intervention Lab)' :
-                   currentView === 'field-action' ? '६. ग्राम निरीक्षण तंत्र (Field Net)' :
-                   currentView === 'overview' ? 'मेवाड़ बेसिन सर्वेक्षण (Basin Overview)' : 'विश्लेषण (Diagnostics)'}
-                </span>
-                <span className="mono-text" style={{ fontSize: '0.67rem', color: 'var(--mewar-gold-dark)', fontWeight: 600 }}>
-                  ● 3D Sync Active
-                </span>
+            {/* Apple-grade View Breadcrumb & 3D Map Action Bar (For deep-dive pages) */}
+            {currentView !== 'overview' && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 24px',
+                borderBottom: '1.5px solid var(--border-gold)',
+                backgroundColor: 'rgba(250, 248, 242, 0.98)',
+                position: 'sticky',
+                top: 0,
+                zIndex: 40,
+                backdropFilter: 'blur(16px)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <button
+                    onClick={() => setCurrentView('overview')}
+                    className="btn btn-ghost apple-pressable"
+                    style={{ padding: '4px 10px', fontSize: '0.74rem', display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-secondary)' }}
+                    title="Return to Landing & Overview Page"
+                  >
+                    <Compass size={13} />
+                    <span>मेवाड़ अवलोकन (Overview)</span>
+                  </button>
+                  <span style={{ color: 'var(--border-gold)' }}>/</span>
+                  <span className="badge badge-observed" style={{ fontSize: '0.72rem', letterSpacing: '0.04em', border: '1px solid var(--border-gold)', fontWeight: 600 }}>
+                    {currentView === 'trace' ? '२. भू-प्रवाह अनुरेखक (Upstream Landscape Tracer)' :
+                     currentView === 'simulation' ? '३. मानसून प्रभाव सिमुलेटर (Monsoon Impact Simulator)' :
+                     currentView === 'satellite' ? '४. उपग्रह परिवर्तन संवेदक (Sentinel-2 Satellite Scrubber)' :
+                     currentView === 'silt-loop' ? 'गाद से खाद (Circular Silt-to-Farm Loop)' :
+                     currentView === 'water-credits' ? 'जल-ऋण विनिमय (Aravalli Water Credits & PES)' :
+                     currentView === 'citizen-hub' ? 'जल-चौकीदार (Citizen & Tourist Sentry)' :
+                     currentView === 'heritage-crops' ? 'मेवाड़ धरोहर उपज (Heritage Crops Fair Market)' :
+                     currentView === 'interventions' ? '५. संरक्षण कार्यशाला (Intervention Lab & DPR)' :
+                     currentView === 'field-action' ? '६. ग्राम निरीक्षण तंत्र (Field Net)' :
+                     currentView === 'earth-health' ? 'भू-स्वास्थ्य संज्ञान (Earth Health)' :
+                     currentView === 'farm-intel' ? 'कृषि भू-डेटा (Farm Intelligence)' : 'विश्लेषण (Diagnostics)'}
+                  </span>
+                </div>
+
+                {/* Primary Button to switch to 3D Watershed Map */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button
+                    onClick={() => setCurrentView('map')}
+                    className="btn apple-pressable"
+                    style={{
+                      padding: '6px 14px',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      background: 'linear-gradient(135deg, var(--color-forest) 0%, #162C21 100%)',
+                      color: '#FAF8F2',
+                      border: '1.5px solid var(--border-gold)',
+                      borderRadius: 'var(--radius-sm)',
+                      boxShadow: '0 2px 8px rgba(30, 58, 43, 0.25)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '7px',
+                    }}
+                    title="Open Fullscreen 3D Digital Twin Terrain Map"
+                  >
+                    <Layers size={14} color="var(--mewar-kesariya)" />
+                    <span>🌍 ३D डिजिटल ट्विन पर देखें (Open 3D Map)</span>
+                  </button>
+                </div>
               </div>
+            )}
 
-              {/* Window Layout Controls */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <button
-                  onClick={() => setPanelMode('docked')}
-                  className={`btn ${panelMode === 'docked' ? 'btn-primary' : 'btn-ghost'}`}
-                  style={{ padding: '3px 8px', fontSize: '0.70rem' }}
-                  title="Dock as floating HUD card (720px) alongside 3D terrain"
-                >
-                  <PanelLeft size={12} />
-                  Docked
-                </button>
-                <button
-                  onClick={() => setPanelMode('split')}
-                  className={`btn ${panelMode === 'split' ? 'btn-primary' : 'btn-ghost'}`}
-                  style={{ padding: '3px 8px', fontSize: '0.70rem' }}
-                  title="Split view (50% Panel / 50% 3D Terrain)"
-                >
-                  <Columns size={12} />
-                  50/50
-                </button>
-                <button
-                  onClick={() => setPanelMode('fullscreen')}
-                  className={`btn ${panelMode === 'fullscreen' ? 'btn-primary' : 'btn-ghost'}`}
-                  style={{ padding: '3px 8px', fontSize: '0.70rem' }}
-                  title="Fullscreen workspace view"
-                >
-                  <Maximize2 size={12} />
-                  Full
-                </button>
-                <div style={{ width: '1px', height: '16px', backgroundColor: 'var(--border-subtle)', margin: '0 2px' }} />
-                <button
-                  onClick={() => setCurrentView('map')}
-                  className="btn btn-secondary"
-                  style={{ padding: '3px 9px', fontSize: '0.72rem', color: 'var(--color-forest)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}
-                  title="Close panel and return full focus to 3D map"
-                >
-                  <X size={13} />
-                  Close Panel
-                </button>
-              </div>
+            {/* Full-width View Content */}
+            <div style={{ flex: 1 }}>
+              {currentView === 'overview' && (
+                <OverviewView
+                  onOpenMap={() => setCurrentView('map')}
+                  onOpenSimulation={() => setIsSimulationModalOpen(true)}
+                  onOpenTrace={() => setCurrentView('trace')}
+                  onOpenFarmIntel={() => setCurrentView('farm-intel')}
+                  onOpenInterventions={() => setCurrentView('interventions')}
+                  onOpenSiltLoop={() => setCurrentView('silt-loop')}
+                  onOpenWaterCredits={() => setCurrentView('water-credits')}
+                  onOpenCitizenHub={() => setCurrentView('citizen-hub')}
+                  onOpenHeritageCrops={() => setCurrentView('heritage-crops')}
+                />
+              )}
+
+              {currentView === 'earth-health' && (
+                <EarthHealthView
+                  onNavigateToPreset={(p) => {
+                    setActivePreset(p);
+                    setCurrentView('map');
+                  }}
+                  onOpenMap={() => setCurrentView('map')}
+                />
+              )}
+
+              {currentView === 'farm-intel' && (
+                <FarmIntelligenceView
+                  onNavigateToFarm={(farm) => {
+                    setSelectedFeature({
+                      name: farm.name,
+                      localName: `${farm.villageName} Holding`,
+                      latitude: farm.latitude,
+                      longitude: farm.longitude,
+                      type: 'FARM',
+                      description: `Area: ${farm.areaHa} ha • Soil: ${farm.soilType} • Active crop: ${farm.cropType}.`,
+                      elevationMeters: farm.elevationMeters,
+                      soilLossRateTonHaYear: farm.soilLossRateTonHaYear,
+                      historicalFact: `Micro-watershed holding directly upstream of ${farm.villageName === 'Nai' ? 'Lake Pichola' : 'Fateh Sagar'}.`,
+                      agencySource: farm.agencySource || 'Mewar Krishi Vigyan Kendra & Dept of Agriculture',
+                    });
+                    setFlyToTarget({
+                      latitude: farm.latitude,
+                      longitude: farm.longitude,
+                      height: 1800,
+                    });
+                    setCurrentView('map');
+                  }}
+                  onAskCopilot={(farm) => {
+                    setSelectedFeature({
+                      name: farm.name,
+                      localName: `${farm.villageName} Holding`,
+                      latitude: farm.latitude,
+                      longitude: farm.longitude,
+                      type: 'FARM',
+                      description: `Area: ${farm.areaHa} ha • Soil: ${farm.soilType} • Active crop: ${farm.cropType}.`,
+                      elevationMeters: farm.elevationMeters,
+                      soilLossRateTonHaYear: farm.soilLossRateTonHaYear,
+                      historicalFact: `Micro-watershed holding directly upstream of ${farm.villageName === 'Nai' ? 'Lake Pichola' : 'Fateh Sagar'}.`,
+                      agencySource: farm.agencySource || 'Mewar Krishi Vigyan Kendra & Dept of Agriculture',
+                    });
+                    setCurrentView('map');
+                    setIsCopilotOpen(true);
+                  }}
+                />
+              )}
+
+              {currentView === 'trace' && (
+                <CauseEffectExplorer
+                  onFlyToStep={handleFlyToStep}
+                  onOpenMap={() => setCurrentView('map')}
+                  onSelectLakeTrace={handleSelectLakeTrace}
+                  selectedLakeId={selectedLakeTraceId}
+                  activeStormScenario={activeStormScenario}
+                  onNavigateToModule={(mod) => setCurrentView(mod)}
+                />
+              )}
+
+              {currentView === 'simulation' && (
+                <MonsoonSimulatorView
+                  onOpen3DMap={() => setCurrentView('map')}
+                  activeInterventions={activeInterventions}
+                  onSimulationComplete={handleSimulationComplete}
+                  lastResult={simulationResult}
+                  activeStormScenario={activeStormScenario}
+                  onUpdateStormScenario={(sc) => setActiveStormScenario(sc)}
+                  onNavigateToModule={(mod) => setCurrentView(mod)}
+                />
+              )}
+
+              {currentView === 'satellite' && (
+                <SatelliteChangeDetector
+                  onFlyToLocation={handleFlyToCoords}
+                  onDispatchFieldMission={handleDispatchFieldMission}
+                  onSelectSeasonOnMap={(seasonId) => {
+                    if (seasonId === '2023-drought') {
+                      setBasemapMode('topographic');
+                    } else if (seasonId === '2021-post') {
+                      setBasemapMode('sentinel');
+                    } else {
+                      setBasemapMode('satellite');
+                    }
+                    setCurrentView('map');
+                  }}
+                />
+              )}
+
+              {currentView === 'interventions' && (
+                <InterventionPlanner
+                  activeInterventions={activeInterventions}
+                  onToggleIntervention={handleToggleIntervention}
+                  onRunSimulation={(interventions) => {
+                    setActiveInterventions(interventions);
+                    setIsSimulationModalOpen(true);
+                  }}
+                  onFlyToLocation={handleFlyToCoords}
+                  onDispatchToField={() => {
+                    setCurrentView('field-action');
+                  }}
+                  onOpenMap={() => setCurrentView('map')}
+                  onNavigateToModule={(mod) => setCurrentView(mod)}
+                  activeStormScenario={activeStormScenario}
+                />
+              )}
+
+              {currentView === 'silt-loop' && (
+                <SiltCircularEconomy
+                  onFlyToLocation={handleFlyToCoords}
+                  onAskCopilot={(context) => {
+                    setCurrentView('map');
+                    setIsCopilotOpen(true);
+                  }}
+                  onOpenMap={() => setCurrentView('map')}
+                  onNavigateToModule={(mod) => setCurrentView(mod)}
+                  activeStormScenario={activeStormScenario}
+                />
+              )}
+
+              {currentView === 'water-credits' && (
+                <WaterCreditsPES
+                  onFlyToLocation={handleFlyToCoords}
+                  onAskCopilot={(context) => {
+                    setCurrentView('map');
+                    setIsCopilotOpen(true);
+                  }}
+                  onOpenMap={() => setCurrentView('map')}
+                  onNavigateToModule={(mod) => setCurrentView(mod)}
+                />
+              )}
+
+              {currentView === 'citizen-hub' && (
+                <JalChowkidarCitizenHub
+                  onFlyToLocation={handleFlyToCoords}
+                  onOpenMap={() => setCurrentView('map')}
+                  onAskCopilot={(context) => {
+                    setCurrentView('map');
+                    setIsCopilotOpen(true);
+                  }}
+                  activeStormScenario={activeStormScenario}
+                  onNavigateToModule={(mod) => setCurrentView(mod)}
+                />
+              )}
+
+              {currentView === 'heritage-crops' && (
+                <HeritageCropMarket
+                  onFlyToLocation={handleFlyToCoords}
+                  onAskCopilot={(context) => {
+                    setCurrentView('map');
+                    setIsCopilotOpen(true);
+                  }}
+                  onOpenMap={() => setCurrentView('map')}
+                  onNavigateToModule={(mod) => setCurrentView(mod)}
+                  activeStormScenario={activeStormScenario}
+                />
+              )}
+
+              {currentView === 'field-action' && (
+                <FieldActionNetwork
+                  onFlyToLocation={handleFlyToCoords}
+                  externalNewMissions={dispatchedMissions}
+                />
+              )}
+
+              {currentView === 'future-lab' && (
+                <FutureLabView
+                  onOpenMap={() => setCurrentView('map')}
+                  onOpenSimulation={() => setIsSimulationModalOpen(true)}
+                />
+              )}
+
+              {currentView === 'impact' && (
+                <ImpactView
+                  onOpenMap={() => setCurrentView('map')}
+                  onOpenSimulation={() => setIsSimulationModalOpen(true)}
+                />
+              )}
             </div>
-
-            {/* Scrollable View Content */}
-            <div style={{ flex: 1, overflowY: 'auto' }}>
-            {currentView === 'overview' && (
-              <OverviewView
-                onOpenMap={() => setCurrentView('map')}
-                onOpenSimulation={() => setIsSimulationModalOpen(true)}
-                onOpenTrace={() => setCurrentView('trace')}
-                onOpenFarmIntel={() => setCurrentView('farm-intel')}
-                onOpenInterventions={() => setCurrentView('interventions')}
-              />
-            )}
-
-            {currentView === 'earth-health' && (
-              <EarthHealthView
-                onNavigateToPreset={(p) => {
-                  setActivePreset(p);
-                  setCurrentView('map');
-                }}
-                onOpenMap={() => setCurrentView('map')}
-              />
-            )}
-
-            {currentView === 'farm-intel' && (
-              <FarmIntelligenceView
-                onNavigateToFarm={(farm) => {
-                  setSelectedFeature({
-                    name: farm.name,
-                    localName: `${farm.villageName} Holding`,
-                    latitude: farm.latitude,
-                    longitude: farm.longitude,
-                    type: 'FARM',
-                    description: `Area: ${farm.areaHa} ha • Soil: ${farm.soilType} • Active crop: ${farm.cropType}.`,
-                    elevationMeters: farm.elevationMeters,
-                    soilLossRateTonHaYear: farm.soilLossRateTonHaYear,
-                    historicalFact: `Micro-watershed holding directly upstream of ${farm.villageName === 'Nai' ? 'Lake Pichola' : 'Fateh Sagar'}.`,
-                    agencySource: farm.agencySource || 'Mewar Krishi Vigyan Kendra & Dept of Agriculture',
-                  });
-                  setFlyToTarget({
-                    latitude: farm.latitude,
-                    longitude: farm.longitude,
-                    height: 1800,
-                  });
-                  setCurrentView('map');
-                }}
-                onAskCopilot={(farm) => {
-                  setSelectedFeature({
-                    name: farm.name,
-                    localName: `${farm.villageName} Holding`,
-                    latitude: farm.latitude,
-                    longitude: farm.longitude,
-                    type: 'FARM',
-                    description: `Area: ${farm.areaHa} ha • Soil: ${farm.soilType} • Active crop: ${farm.cropType}.`,
-                    elevationMeters: farm.elevationMeters,
-                    soilLossRateTonHaYear: farm.soilLossRateTonHaYear,
-                    historicalFact: `Micro-watershed holding directly upstream of ${farm.villageName === 'Nai' ? 'Lake Pichola' : 'Fateh Sagar'}.`,
-                    agencySource: farm.agencySource || 'Mewar Krishi Vigyan Kendra & Dept of Agriculture',
-                  });
-                  setIsCopilotOpen(true);
-                }}
-              />
-            )}
-
-            {/* Mode 1: Upstream Landscape Tracer */}
-            {currentView === 'trace' && (
-              <CauseEffectExplorer
-                onFlyToStep={handleFlyToStep}
-                onOpenMap={() => setCurrentView('map')}
-                onSelectLakeTrace={handleSelectLakeTrace}
-                selectedLakeId={selectedLakeTraceId}
-              />
-            )}
-
-            {/* Mode 2: Monsoon Impact Simulator */}
-            {currentView === 'simulation' && (
-              <MonsoonSimulatorView
-                onOpen3DMap={() => setCurrentView('map')}
-                activeInterventions={activeInterventions}
-                onSimulationComplete={handleSimulationComplete}
-                lastResult={simulationResult}
-              />
-            )}
-
-            {/* Mode 3: Satellite Change Detector */}
-            {currentView === 'satellite' && (
-              <SatelliteChangeDetector
-                onFlyToLocation={handleFlyToCoords}
-                onDispatchFieldMission={handleDispatchFieldMission}
-                onSelectSeasonOnMap={(seasonId) => {
-                  if (seasonId === '2023-drought') {
-                    setBasemapMode('topographic');
-                  } else if (seasonId === '2021-post') {
-                    setBasemapMode('sentinel');
-                  } else {
-                    setBasemapMode('satellite');
-                  }
-                }}
-              />
-            )}
-
-            {/* Mode 4: Conservation Intervention Lab */}
-            {currentView === 'interventions' && (
-              <InterventionPlanner
-                activeInterventions={activeInterventions}
-                onToggleIntervention={handleToggleIntervention}
-                onRunSimulation={(interventions) => {
-                  setActiveInterventions(interventions);
-                  setIsSimulationModalOpen(true);
-                }}
-                onFlyToLocation={handleFlyToCoords}
-                onDispatchToField={() => {
-                  setCurrentView('field-action');
-                }}
-              />
-            )}
-
-            {/* Mode 5: Field Action Network */}
-            {currentView === 'field-action' && (
-              <FieldActionNetwork
-                onFlyToLocation={handleFlyToCoords}
-                externalNewMissions={dispatchedMissions}
-              />
-            )}
-
-            {currentView === 'future-lab' && (
-              <FutureLabView
-                onOpenMap={() => setCurrentView('map')}
-                onOpenSimulation={() => setIsSimulationModalOpen(true)}
-              />
-            )}
-
-            {currentView === 'impact' && (
-              <ImpactView
-                onOpenMap={() => setCurrentView('map')}
-                onOpenSimulation={() => setIsSimulationModalOpen(true)}
-              />
-            )}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </main>
 
       {/* Rainfall Simulation Modal */}

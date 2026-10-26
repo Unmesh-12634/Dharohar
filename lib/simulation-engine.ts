@@ -1,4 +1,4 @@
-import { Intervention, SimulationParams, SimulationResult } from './types';
+import { ActiveStormScenario, Intervention, SimulationParams, SimulationResult } from './types';
 
 /**
  * Hydrological Simulation Engine for Aravalli Twin
@@ -164,4 +164,83 @@ export function runHydrologicalSimulation(params: SimulationParams): SimulationR
       },
     },
   };
+}
+
+/**
+ * Builds a cross-module ActiveStormScenario telemetry object
+ * used to dynamically modulate readings across Silt Loop, Citizen Sentry,
+ * Check Dams DPR, and Heritage Crop Market.
+ */
+export function buildActiveStormScenario(
+  params: SimulationParams,
+  result: SimulationResult
+): ActiveStormScenario {
+  const intensity = parseFloat((params.rainfallMm / Math.max(params.durationHours, 0.5)).toFixed(1));
+  let name = `${params.rainfallMm} mm Storm Event`;
+  if (params.rainfallMm <= 50) name = '50 mm Light Monsoon Shower';
+  else if (params.rainfallMm <= 100) name = '100 mm Moderate Storm Event';
+  else if (params.rainfallMm <= 150) name = '150 mm Heavy Monsoon Downpour';
+  else if (params.rainfallMm <= 200) name = '200 mm Severe Convective Deluge';
+  else if (params.rainfallMm <= 250) name = '250 mm Very Severe Cloudburst';
+  else name = `${params.rainfallMm} mm Catastrophic Cloudburst`;
+
+  // Silt yield delivered to lake body delta (in tons)
+  const lakeSiltYield =
+    result.ridgeToLakeCascade?.lowerLakes.siltDivertedFromLakesTons ??
+    Math.round(result.erosionVolumeTons * 0.45);
+
+  // Baseline lake water turbidity is ~8.4 NTU in non-monsoon calm state
+  const baselineTurbidity = 8.4;
+  const turbiditySurge = parseFloat(
+    (baselineTurbidity + (result.peakDischargeCms / 85) * 22.4).toFixed(1)
+  );
+
+  // Check dam CD-04 capacity load percentage
+  const checkDamStress =
+    result.ridgeToLakeCascade?.ridgeMountain.checkDamCapacityUtilizedPct ??
+    Math.min(100, Math.round(30 + (params.rainfallMm / 350) * 60));
+
+  // Root zone vadose soil moisture saturation percentage
+  const soilMoistureRecharge = Math.min(
+    96,
+    Math.round(35 + (params.rainfallMm / 350) * 55)
+  );
+
+  // Water level surge in Lake Pichola (meters above baseline 571.8m)
+  const lakeRise = parseFloat(((result.lakeInflowVolumeMcm / 13.7) * 1.6).toFixed(2));
+
+  return {
+    id: `storm-${params.rainfallMm}mm-${Date.now()}`,
+    scenarioName: name,
+    rainfallMm: params.rainfallMm,
+    durationHours: params.durationHours,
+    intensityMmH: intensity,
+    soilSaturationPct: params.soilSaturationInitial ?? 45,
+    runoffVolumeMcm: parseFloat((result.runoffVolumeCubicMeters / 1_000_000).toFixed(2)),
+    peakDischargeCms: result.peakDischargeCms,
+    erosionVolumeTons: result.erosionVolumeTons,
+    farmlandInundatedHa: result.farmlandInundationHa,
+    lakeSiltYieldTons: lakeSiltYield,
+    lakeTurbiditySurgeNtu: turbiditySurge,
+    checkDamStressPct: checkDamStress,
+    soilMoistureRechargePct: soilMoistureRecharge,
+    lakeLevelRiseMeters: lakeRise,
+    simulatedAt: 'Active Live',
+    mitigated: (params.activeInterventions?.length ?? 0) > 0,
+    activeInterventionsCount: params.activeInterventions?.length ?? 0,
+  };
+}
+
+/**
+ * Default starting storm scenario (150mm Heavy Downpour)
+ */
+export function getDefaultStormScenario(): ActiveStormScenario {
+  const defaultParams: SimulationParams = {
+    rainfallMm: 150,
+    durationHours: 3,
+    activeInterventions: [],
+    soilSaturationInitial: 45,
+  };
+  const defaultResult = runHydrologicalSimulation(defaultParams);
+  return buildActiveStormScenario(defaultParams, defaultResult);
 }

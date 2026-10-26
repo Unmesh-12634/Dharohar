@@ -335,3 +335,24 @@ export interface UpstreamCatchmentTrace {
   recommendedInterventions: string[];
 }
 
+export interface ActiveStormScenario {
+  id: string;
+  scenarioName: string;
+  rainfallMm: number;
+  durationHours: number;
+  intensityMmH: number;
+  soilSaturationPct: number;
+  runoffVolumeMcm: number;
+  peakDischargeCms: number;
+  erosionVolumeTons: number;
+  farmlandInundatedHa: number;
+  lakeSiltYieldTons: number;
+  lakeTurbiditySurgeNtu: number;
+  checkDamStressPct: number;
+  soilMoistureRechargePct: number;
+  lakeLevelRiseMeters: number;
+  simulatedAt: string;
+  mitigated: boolean;
+  activeInterventionsCount: number;
+}
+

@@ -1,73 +1,80 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Marcellus&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Cinzel:wght@500;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Marcellus&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  /* Authentic Mewar & Udaipur Royal Architectural Palette */
-  --bg-primary: #FAF8F2; /* City Palace White Marble / Ivory */
-  --bg-secondary: #F4EFE6; /* Haveli Sandstone Warm Wash */
-  --bg-tertiary: #ECE4D4; /* Muted Jaisalmer / Mewar Sandstone */
-  --bg-card: #FFFFFF;
-  --bg-card-subtle: #FAF7F0;
-  --bg-marble: #FDFCF9;
+  /* Official Apple-Inspired Dharohar Design Tokens (Section 4) */
+  --primary-forest: #173D2D;
+  --deep-forest: #102D23;
+  --deep-green: #102D23;
+  --secondary-sage: #7D967E;
+  --bg-warm-ivory: #F7F5EF;
+  --surface-white: #FFFFFF;
+  --surface-sandstone: #F1EBDD;
+  --antique-gold: #D8B56D;
+  --fine-border: #E7DDCB;
+  --primary-text: #202B27;
+  --secondary-text: #5A6660;
+  --text-tertiary: #6E7771;
+  --lake-blue: #347FB3;
+  --water-blue: #347FB3;
+  --status-positive: #25835A;
+  --status-warning: #C88732;
+  --status-error: #B94A38;
+  --status-danger: #B94A38;
 
-  /* Text colors */
-  --text-primary: #1F2421; /* Deep Mewar Charcoal Slate */
-  --text-secondary: #535D56; /* Warm Basalt Slate */
-  --text-tertiary: #848D86; /* Light Sandstone Slate */
-  --text-inverse: #FAF8F2;
+  /* Aliases & Semantic Tints */
+  --bg-primary: var(--bg-warm-ivory);
+  --bg-secondary: var(--surface-sandstone);
+  --bg-card: var(--surface-white);
+  --bg-card-subtle: #FBF9F5;
+  --text-primary: var(--primary-text);
+  --text-secondary: var(--secondary-text);
+  --border-subtle: var(--fine-border);
+  --border-strong: #D1C4B0;
+  --border-gold: var(--antique-gold);
+  --color-forest: var(--primary-forest);
+  --color-primary: var(--primary-forest);
+  --color-lake: var(--lake-blue);
+  --color-terracotta: var(--status-error);
+  --color-sandstone: var(--surface-sandstone);
+  --color-forest-bg: #EDF7EE;
+  --color-lake-bg: #EBF5FB;
+  --color-terracotta-bg: #FDF2E9;
+  --color-brass-bg: #FEF9E7;
+  --color-forest-light: #2D6A4F;
+  --color-lake-light: #5DADE2;
+  --mewar-forest-bg: rgba(23, 61, 45, 0.08);
+  --mewar-gold: var(--antique-gold);
+  --mewar-kesariya: var(--status-warning);
 
-  /* Regal Mewar Metals & Mineral Accents */
-  --mewar-gold: #C5A059; /* Royal Brass / Mewar Gold Leaf */
-  --mewar-gold-dark: #9E7D38;
-  --mewar-gold-light: #F4E8CE;
-  --mewar-kesariya: #D97706; /* Rajasthani Kesariya / Saffron Ochre */
-  --mewar-kesariya-bg: #FEF3C7;
-  --mewar-terracotta: #BD5637; /* Aravalli Red Soil & Haveli Brick */
-  --mewar-terracotta-bg: #FAF1ED;
-  --mewar-forest: #1E3A2B; /* Aravalli Mountain Emerald */
-  --mewar-forest-light: #2A4836;
-  --mewar-forest-bg: #EEF3EE;
-  --mewar-lake: #1B4965; /* Pichola & Fateh Sagar Deep Azure */
-  --mewar-lake-light: #2B6284;
-  --mewar-lake-bg: #EDF4F8;
+  /* Button & Interaction Tokens */
+  --button-primary-hover: #0D251C;
+  --button-secondary-hover: #E5DDCB;
+  --button-secondary-border: #DCD1BC;
 
-  /* Borders & Filigree */
-  --border-subtle: #E8DFCE; /* Delicate Sandstone 1px Border */
-  --border-strong: #D4C6AB;
-  --border-gold: rgba(197, 160, 89, 0.45);
-  --border-focus: #1E3A2B;
-
-  /* Aliases for environmental palette compatibility */
-  --color-forest: var(--mewar-forest);
-  --color-forest-light: var(--mewar-forest-light);
-  --color-forest-bg: var(--mewar-forest-bg);
-  --color-olive: #4A6044;
-  --color-olive-bg: #F1F4EE;
-  --color-lake: var(--mewar-lake);
-  --color-lake-light: var(--mewar-lake-light);
-  --color-lake-bg: var(--mewar-lake-bg);
-  --color-terracotta: var(--mewar-terracotta);
-  --color-terracotta-bg: var(--mewar-terracotta-bg);
-  --color-brass: var(--mewar-gold);
-  --color-brass-bg: var(--mewar-gold-light);
-  --color-amber: var(--mewar-kesariya);
-  --color-amber-bg: var(--mewar-kesariya-bg);
+  /* Layout Baseline */
+  --background: var(--bg-warm-ivory);
+  --foreground: var(--primary-text);
 
   /* Radius & Shadows - Clean, architectural, restrained */
-  --radius-xs: 3px;
+  --radius-xs: 4px;
   --radius-sm: 6px;
-  --radius-md: 9px;
+  --radius-md: 10px;
   --radius-lg: 14px;
+  --radius-xl: 18px;
 
-  --shadow-subtle: 0 1px 3px rgba(31, 36, 33, 0.04), 0 1px 2px rgba(31, 36, 33, 0.02);
-  --shadow-card: 0 4px 18px rgba(31, 36, 33, 0.07), 0 1px 3px rgba(31, 36, 33, 0.03);
-  --shadow-mewar: 0 8px 30px rgba(30, 58, 43, 0.12), 0 2px 8px rgba(197, 160, 89, 0.18);
-  --shadow-popover: 0 14px 38px rgba(31, 36, 33, 0.15), 0 3px 8px rgba(197, 160, 89, 0.12);
+  --shadow-subtle: 0 1px 3px rgba(23, 61, 45, 0.04), 0 1px 2px rgba(23, 61, 45, 0.02);
+  --shadow-card: 0 2px 12px rgba(23, 61, 45, 0.05), 0 1px 3px rgba(23, 61, 45, 0.02);
+  --shadow-mewar: 0 6px 24px rgba(23, 61, 45, 0.08), 0 2px 6px rgba(216, 181, 109, 0.12);
+  --shadow-lg: 0 10px 25px -5px rgba(23, 61, 45, 0.1), 0 8px 10px -6px rgba(23, 61, 45, 0.08);
+  --shadow-popover: 0 12px 32px rgba(16, 45, 35, 0.16);
 
-  /* Fonts */
-  --font-serif: 'Cormorant Garamond', 'Marcellus', Georgia, serif;
+  /* Typography */
+  --font-serif: 'Lora', 'Cormorant Garamond', 'Marcellus', Georgia, serif;
   --font-royal: 'Cinzel', 'Marcellus', Georgia, serif;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+  --font-geist-sans: var(--font-sans);
+  --font-geist-mono: var(--font-mono);
 }
 
 * {
@@ -469,15 +476,116 @@ body {
   height: 14px;
 }
 
-/* Animations */
+/* =========================================================================
+   Apple-Grade Motion & GIS Animation Engine
+   ========================================================================= */
+
 @keyframes pulseSubtle {
   0% { transform: scale(1); opacity: 0.9; }
   50% { transform: scale(1.08); opacity: 0.5; }
   100% { transform: scale(1); opacity: 0.9; }
 }
 
+@keyframes streamFlow {
+  0% { stroke-dashoffset: 48; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes streamGlowPulse {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(96, 165, 250, 0.4)); opacity: 0.85; }
+  50% { filter: drop-shadow(0 0 7px rgba(96, 165, 250, 0.95)); opacity: 1; }
+}
+
+@keyframes radarPulseRing {
+  0% { transform: scale(0.8); opacity: 0.95; }
+  70% { transform: scale(2.4); opacity: 0; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+@keyframes waterDropFlow {
+  0% { offset-distance: 0%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+
+@keyframes shimmerGlow {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes floatGentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes numberSpring {
+  0% { transform: scale(0.96); opacity: 0.8; }
+  50% { transform: scale(1.04); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 .pulse-ring {
   animation: pulseSubtle 2.2s infinite ease-in-out;
+  transform-origin: center;
+}
+
+.radar-ping {
+  animation: radarPulseRing 2.4s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-origin: center;
+}
+
+.stream-water-pulse {
+  stroke-dasharray: 8 6;
+  animation: streamFlow 1.6s linear infinite;
+}
+
+.stream-water-pulse-secondary {
+  stroke-dasharray: 6 5;
+  animation: streamFlow 2.2s linear infinite;
+}
+
+.stream-glow {
+  animation: streamGlowPulse 2.8s infinite ease-in-out;
+}
+
+.water-shimmer-bar {
+  background: linear-gradient(90deg, #102D23 0%, #25835A 50%, #D8B56D 75%, #25835A 100%);
+  background-size: 200% 100%;
+  animation: shimmerGlow 3s infinite linear;
+}
+
+.apple-card-hover {
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.24s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+}
+
+.apple-card-hover:hover {
+  transform: translateY(-2.5px);
+  box-shadow: 0 10px 24px rgba(23, 61, 45, 0.08), 0 3px 8px rgba(216, 181, 109, 0.12);
+  border-color: var(--antique-gold) !important;
+}
+
+.apple-metric-card {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.apple-metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(23, 61, 45, 0.07);
+  background-color: #FFFFFF !important;
+}
+
+.number-animate {
+  animation: numberSpring 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.lake-button {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lake-button:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px rgba(23, 61, 45, 0.08);
 }
 
 @media print {
@@ -499,3 +607,39 @@ body {
     padding: 0 !important;
   }
 }
+
+/* =========================================================================
+   Google Translate Banner & Styling Cleanups
+   ========================================================================= */
+.goog-te-banner-frame.skiptranslate,
+.goog-te-banner-frame,
+iframe.goog-te-banner-frame {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+}
+
+body {
+  top: 0px !important;
+  position: static !important;
+}
+
+#google_translate_element {
+  display: none !important;
+}
+
+.skiptranslate > iframe {
+  display: none !important;
+}
+
+.goog-tooltip,
+.goog-tooltip:hover {
+  display: none !important;
+}
+
+.goog-text-highlight {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
