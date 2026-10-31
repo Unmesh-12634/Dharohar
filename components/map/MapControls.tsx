@@ -19,6 +19,7 @@ import {
 interface MapControlsProps {
   activePreset: ViewPreset;
   onSelectPreset: (preset: ViewPreset) => void;
+  isCopilotOpen: boolean;
   isWatershedMode?: boolean;
   onToggleWatershedMode?: () => void;
   onResetView: () => void;
@@ -35,6 +36,7 @@ interface MapControlsProps {
 export const MapControls: React.FC<MapControlsProps> = ({
   activePreset,
   onSelectPreset,
+  isCopilotOpen,
   onResetView,
   basemapMode,
   onSelectBasemap,
@@ -132,8 +134,9 @@ export const MapControls: React.FC<MapControlsProps> = ({
         style={{
           position: 'absolute',
           bottom: '16px',
-          left: '50%',
-          transform: 'translateX(-50%)',
+          left: isCopilotOpen ? '304px' : 'calc(50% - 60px)',
+          right: isCopilotOpen ? 'calc(min(360px, 100vw - 24px) + 32px)' : 'auto',
+          transform: isCopilotOpen ? 'none' : 'translateX(-50%)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -156,6 +159,8 @@ export const MapControls: React.FC<MapControlsProps> = ({
             gap: '6px',
             boxShadow: '0 6px 24px rgba(0, 0, 0, 0.10)',
             whiteSpace: 'nowrap',
+            maxWidth: isCopilotOpen ? '100%' : undefined,
+            overflowX: isCopilotOpen ? 'auto' : 'visible',
             userSelect: 'none',
           }}
         >
@@ -347,6 +352,8 @@ export const MapControls: React.FC<MapControlsProps> = ({
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
+            position: 'relative',
+            left: 'min(120px, 10vw)',
             fontSize: '0.62rem',
             color: '#FFFFFF',
             textShadow: '0 1px 3px rgba(0,0,0,0.8)',
@@ -373,7 +380,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
         style={{
           position: 'absolute',
           top: '50%',
-          right: '372px', // Just to the left of Copilot inspector
+          right: isCopilotOpen ? 'calc(min(360px, 100vw - 24px) + 32px)' : '20px',
           transform: 'translateY(-50%)',
           display: 'flex',
           flexDirection: 'column',
@@ -381,6 +388,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
           gap: '6px',
           zIndex: 22,
           userSelect: 'none',
+          transition: 'right 0.2s ease',
         }}
       >
         {/* Circular Compass Rose */}

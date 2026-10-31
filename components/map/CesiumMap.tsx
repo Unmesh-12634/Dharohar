@@ -25,6 +25,7 @@ interface CesiumMapProps {
   googleMapsApiKey?: string;
   onApiKeyMissing?: () => void;
   onTilesStatusChange?: (isActive: boolean) => void;
+  isCopilotOpen?: boolean;
   basemapMode?: BasemapMode;
   flyToTarget?: { latitude: number; longitude: number; height?: number } | null;
   showHybridLabels?: boolean;
@@ -103,6 +104,7 @@ export const CesiumMap: React.FC<CesiumMapProps> = ({
   googleMapsApiKey,
   onApiKeyMissing,
   onTilesStatusChange,
+  isCopilotOpen = false,
   basemapMode = 'satellite',
   flyToTarget,
   showHybridLabels = true,
@@ -1142,14 +1144,16 @@ export const CesiumMap: React.FC<CesiumMapProps> = ({
       {!isGoogleTilesActive && isLoaded && (
         <div style={{
           position: 'absolute',
-          top: '16px',
-          right: '16px',
+          top: '100px',
+          left: isCopilotOpen ? '304px' : 'auto',
+          right: isCopilotOpen ? 'calc(min(360px, 100vw - 24px) + 32px)' : '16px',
           backgroundColor: 'rgba(255, 255, 255, 0.92)',
           border: '1px solid var(--border-subtle)',
           padding: '8px 14px',
           borderRadius: 'var(--radius-sm)',
           backdropFilter: 'blur(6px)',
           display: 'flex',
+          flexWrap: 'wrap',
           alignItems: 'center',
           gap: '8px',
           zIndex: 20,

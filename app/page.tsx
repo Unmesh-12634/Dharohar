@@ -105,7 +105,7 @@ export default function HomePage() {
   const [selectedFeature, setSelectedFeature] = useState<any | null>(null);
 
   // Copilot state (open by default to match GIS workspace)
-  const [isCopilotOpen, setIsCopilotOpen] = useState(true);
+  const [isCopilotOpen, setIsCopilotOpen] = useState(false);
   const [copilotExternalPrompt, setCopilotExternalPrompt] = useState<string | null>(null);
 
   // Settings & Keys state
@@ -340,6 +340,7 @@ export default function HomePage() {
             googleMapsApiKey={googleMapsKey}
             onApiKeyMissing={() => setIsSettingsModalOpen(true)}
             onTilesStatusChange={(active) => setIs3DTilesActive(active)}
+            isCopilotOpen={isCopilotOpen}
             basemapMode={basemapMode}
             flyToTarget={flyToTarget}
             showHybridLabels={showHybridLabels}
@@ -354,6 +355,7 @@ export default function HomePage() {
             {/* Top Search & Mode Switcher Bar */}
             {currentView === 'map' && (
               <MapTopBar
+                isCopilotOpen={isCopilotOpen}
                 onSearch={(q) => {
                   console.info('Spatial search:', q);
                 }}
@@ -379,6 +381,7 @@ export default function HomePage() {
           {currentView === 'map' && (
             <div style={{
               position: 'absolute',
+              top: 0,
               bottom: 0,
               left: 0,
               right: 0,
@@ -389,6 +392,7 @@ export default function HomePage() {
                 <MapControls
                   activePreset={activePreset}
                   onSelectPreset={(p) => setActivePreset(p)}
+                  isCopilotOpen={isCopilotOpen}
                   isWatershedMode={isWatershedMode}
                   onToggleWatershedMode={handleToggleWatershedMode}
                   onResetView={() => setActivePreset('regional')}

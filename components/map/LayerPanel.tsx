@@ -116,7 +116,7 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
         top: '12px',
         left: '12px',
         width: '280px',
-        maxHeight: 'calc(100vh - 110px)',
+        maxHeight: 'calc(100% - 100px)',
         backgroundColor: '#FFFFFF',
         border: '1px solid var(--fine-border)',
         borderRadius: 'var(--radius-md)',

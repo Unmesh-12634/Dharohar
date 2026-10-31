@@ -4,12 +4,14 @@ import React, { useState } from 'react';
 import { Search, Box, Map, Columns } from 'lucide-react';
 
 interface MapTopBarProps {
+  isCopilotOpen: boolean;
   onSearch?: (query: string) => void;
   activeMode?: '3d' | '2d' | 'split';
   onChangeMode?: (mode: '3d' | '2d' | 'split') => void;
 }
 
 export const MapTopBar: React.FC<MapTopBarProps> = ({
+  isCopilotOpen,
   onSearch,
   activeMode = '3d',
   onChangeMode,
@@ -28,10 +30,12 @@ export const MapTopBar: React.FC<MapTopBarProps> = ({
         position: 'absolute',
         top: '12px',
         left: '304px', // Right next to LayerPanel
-        right: '372px', // In front of Copilot
+        right: isCopilotOpen ? 'calc(min(360px, 100vw - 24px) + 32px)' : '12px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '8px',
         zIndex: 20,
         pointerEvents: 'none',
       }}
@@ -48,7 +52,9 @@ export const MapTopBar: React.FC<MapTopBarProps> = ({
           border: '1px solid var(--fine-border)',
           borderRadius: '9999px',
           boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
-          width: '320px',
+          width: 'min(320px, 100%)',
+          maxWidth: '320px',
+          flex: '1 1 260px',
         }}
       >
         <Search size={14} color="var(--secondary-text)" />
@@ -76,6 +82,7 @@ export const MapTopBar: React.FC<MapTopBarProps> = ({
           display: 'flex',
           alignItems: 'center',
           gap: '4px',
+          flex: '0 0 auto',
           backgroundColor: '#FFFFFF',
           border: '1px solid var(--fine-border)',
           borderRadius: '9999px',

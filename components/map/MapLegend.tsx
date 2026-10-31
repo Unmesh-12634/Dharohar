@@ -13,7 +13,7 @@ export const MapLegend: React.FC = () => {
         className="apple-pressable"
         style={{
           position: 'absolute',
-          bottom: '22px',
+          bottom: '78px',
           left: '304px',
           zIndex: 22,
           padding: '5px 12px',
@@ -36,7 +36,7 @@ export const MapLegend: React.FC = () => {
     <div
       style={{
         position: 'absolute',
-        bottom: '22px',
+        bottom: '78px',
         left: '304px',
         backgroundColor: '#FFFFFF',
         border: '1px solid var(--fine-border)',
