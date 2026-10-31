@@ -106,6 +106,7 @@ export default function HomePage() {
 
   // Copilot state (open by default to match GIS workspace)
   const [isCopilotOpen, setIsCopilotOpen] = useState(true);
+  const [copilotExternalPrompt, setCopilotExternalPrompt] = useState<string | null>(null);
 
   // Settings & Keys state
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -410,15 +411,7 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Dockable Aravalli Copilot AI on Right */}
-          <AravalliCopilot
-            isOpen={isCopilotOpen}
-            onToggle={() => setIsCopilotOpen(!isCopilotOpen)}
-            selectedFeature={selectedFeature}
-            simulationResult={simulationResult}
-            activeLayers={activeLayers}
-            apiKey={geminiKey}
-          />
+          
 
           {/* Editorial Geospatial Intelligence Dossier Drawer (Only visible on 3D Map, offset to prevent overlap) */}
           {currentView === 'map' && selectedFeature && (
@@ -638,7 +631,10 @@ export default function HomePage() {
               {/* Interactive Action Buttons Bar */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)' }}>
                 <button
-                  onClick={() => setIsCopilotOpen(true)}
+                  onClick={() => {
+                    setCopilotExternalPrompt(`Analyze ${selectedFeature.name || selectedFeature.localName || "this location"}: hydrological vulnerability, runoff patterns, and recommended interventions.`);
+                    setIsCopilotOpen(true);
+                  }}
                   className="btn btn-secondary"
                   style={{ flex: 1, fontSize: '0.74rem', padding: '6px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
                 >
@@ -880,6 +876,7 @@ export default function HomePage() {
                 <SiltCircularEconomy
                   onFlyToLocation={handleFlyToCoords}
                   onAskCopilot={(context) => {
+                    setCopilotExternalPrompt(context);
                     setCurrentView('map');
                     setIsCopilotOpen(true);
                   }}
@@ -893,6 +890,7 @@ export default function HomePage() {
                 <WaterCreditsPES
                   onFlyToLocation={handleFlyToCoords}
                   onAskCopilot={(context) => {
+                    setCopilotExternalPrompt(context);
                     setCurrentView('map');
                     setIsCopilotOpen(true);
                   }}
@@ -906,6 +904,7 @@ export default function HomePage() {
                   onFlyToLocation={handleFlyToCoords}
                   onOpenMap={() => setCurrentView('map')}
                   onAskCopilot={(context) => {
+                    setCopilotExternalPrompt(context);
                     setCurrentView('map');
                     setIsCopilotOpen(true);
                   }}
@@ -918,6 +917,7 @@ export default function HomePage() {
                 <HeritageCropMarket
                   onFlyToLocation={handleFlyToCoords}
                   onAskCopilot={(context) => {
+                    setCopilotExternalPrompt(context);
                     setCurrentView('map');
                     setIsCopilotOpen(true);
                   }}
@@ -950,6 +950,17 @@ export default function HomePage() {
             </div>
             </div>
           )}
+                  {/* Dockable Aravalli Copilot AI */}
+          <AravalliCopilot
+            isOpen={isCopilotOpen}
+            onToggle={() => setIsCopilotOpen(!isCopilotOpen)}
+            selectedFeature={selectedFeature}
+            simulationResult={simulationResult}
+            activeLayers={activeLayers}
+            apiKey={geminiKey}
+            externalPrompt={copilotExternalPrompt}
+            onClearExternalPrompt={() => setCopilotExternalPrompt(null)}
+          />
         </div>
       </main>
 
