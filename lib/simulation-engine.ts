@@ -210,7 +210,7 @@ export function buildActiveStormScenario(
   const lakeRise = parseFloat(((result.lakeInflowVolumeMcm / 13.7) * 1.6).toFixed(2));
 
   return {
-    id: `storm-${params.rainfallMm}mm-${Date.now()}`,
+    id: `storm-${params.rainfallMm}mm-sim`,
     scenarioName: name,
     rainfallMm: params.rainfallMm,
     durationHours: params.durationHours,

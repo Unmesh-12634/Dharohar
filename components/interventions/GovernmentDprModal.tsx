@@ -103,19 +103,21 @@ export const GovernmentDprModal: React.FC<GovernmentDprModalProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '12px 24px',
+            flexWrap: 'wrap',
+            gap: '10px',
+            padding: '12px 16px',
             backgroundColor: '#F5F2EB',
             borderBottom: '1px solid var(--border-subtle)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 260px', minWidth: 0 }}>
             <FileText size={18} color="var(--color-forest)" />
             <span style={{ fontWeight: 600, fontSize: '0.90rem', color: 'var(--color-forest)' }}>
               Official Government DPR Generator (PMKSY & MGNREGA)
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', flexWrap: 'wrap', gap: '8px', flexShrink: 0 }}>
             <button
               onClick={handlePrint}
               className="btn btn-primary apple-pressable"
@@ -131,11 +133,13 @@ export const GovernmentDprModal: React.FC<GovernmentDprModalProps> = ({
             </button>
             <button
               onClick={onClose}
-              className="btn btn-ghost"
-              style={{ padding: '6px' }}
-              title="Close DPR"
+              type="button"
+              className="btn btn-secondary"
+              style={{ minHeight: '36px', padding: '6px 10px', gap: '5px', flexShrink: 0 }}
+              aria-label="Close Government DPR"
             >
               <X size={17} />
+              <span>Close</span>
             </button>
           </div>
         </div>
