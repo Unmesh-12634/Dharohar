@@ -7,6 +7,7 @@ import { runHydrologicalSimulation } from '@/lib/simulation-engine';
 import { ActiveStormScenario, Intervention, SimulationParams, SimulationResult } from '@/lib/types';
 import {
   AlertTriangle,
+  ArrowLeft,
   ArrowRight,
   Check,
   CheckCircle,
@@ -69,6 +70,7 @@ export const InterventionPlanner: React.FC<InterventionPlannerProps> = ({
   const [isDprModalOpen, setIsDprModalOpen] = useState<boolean>(false);
   const [selectedFilter, setSelectedFilter] = useState<'ALL' | 'CHECK_DAM' | 'CONTOUR_BUND' | 'RESTORATION_ZONE'>('ALL');
   const [selectedDossierItem, setSelectedDossierItem] = useState<Intervention | null>(null);
+  const [dprReturnItem, setDprReturnItem] = useState<Intervention | null>(null);
   const [showDprReasonModal, setShowDprReasonModal] = useState<boolean>(false);
 
   // Custom Intervention Proposer Form State
@@ -120,6 +122,14 @@ export const InterventionPlanner: React.FC<InterventionPlannerProps> = ({
       : activeStrategyPlan === 'PLAN_B'
       ? planBInterventions
       : planCInterventions;
+
+  const handleBackFromDpr = () => {
+    setIsDprModalOpen(false);
+    if (dprReturnItem) {
+      setSelectedDossierItem(dprReturnItem);
+      setDprReturnItem(null);
+    }
+  };
 
   const handleApplyStrategy = (plan: 'PLAN_A' | 'PLAN_B' | 'PLAN_C') => {
     setActiveStrategyPlan(plan);
@@ -481,7 +491,10 @@ export const InterventionPlanner: React.FC<InterventionPlannerProps> = ({
 
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
-                onClick={() => setIsDprModalOpen(true)}
+                onClick={() => {
+                  setDprReturnItem(null);
+                  setIsDprModalOpen(true);
+                }}
                 className="apple-pressable"
                 style={{
                   padding: '6px 14px',
@@ -1158,11 +1171,34 @@ export const InterventionPlanner: React.FC<InterventionPlannerProps> = ({
                 justifyContent: 'space-between',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldCheck size={18} color="var(--primary-forest)" />
-                <span style={{ fontSize: '0.90rem', fontWeight: 800, color: 'var(--primary-forest)' }}>
-                  Civil Engineering &amp; Hydrological Dossier
-                </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button
+                  onClick={() => setSelectedDossierItem(null)}
+                  className="apple-pressable"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '4px 10px',
+                    fontSize: '0.74rem',
+                    fontWeight: 700,
+                    color: 'var(--primary-forest)',
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid var(--fine-border)',
+                    borderRadius: 'var(--radius-xs)',
+                    cursor: 'pointer',
+                  }}
+                  title="Back to Intervention Catalogue"
+                >
+                  <ArrowLeft size={14} />
+                  <span>Back</span>
+                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <ShieldCheck size={18} color="var(--primary-forest)" />
+                  <span style={{ fontSize: '0.90rem', fontWeight: 800, color: 'var(--primary-forest)' }}>
+                    Civil Engineering &amp; Hydrological Dossier
+                  </span>
+                </div>
               </div>
               <button
                 onClick={() => setSelectedDossierItem(null)}
@@ -1248,6 +1284,7 @@ export const InterventionPlanner: React.FC<InterventionPlannerProps> = ({
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
                     onClick={() => {
+                      setDprReturnItem(selectedDossierItem);
                       setSelectedDossierItem(null);
                       setIsDprModalOpen(true);
                     }}
@@ -1290,7 +1327,12 @@ export const InterventionPlanner: React.FC<InterventionPlannerProps> = ({
       {/* Official Government DPR Modal */}
       <GovernmentDprModal
         isOpen={isDprModalOpen}
-        onClose={() => setIsDprModalOpen(false)}
+        onClose={() => {
+          setIsDprModalOpen(false);
+          setDprReturnItem(null);
+        }}
+        onBack={handleBackFromDpr}
+        backButtonLabel={dprReturnItem ? `Back to Civil Specs (${dprReturnItem.id})` : 'Back to Interventions'}
         activeInterventions={currentPlanInterventions}
         simulationResult={currentPlanResult}
         activeStrategyPlan={activeStrategyPlan}

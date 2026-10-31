@@ -78,6 +78,8 @@ export function runHydrologicalSimulation(params: SimulationParams): SimulationR
     totalRetentionGainFraction = Math.min(0.85, totalRetentionGainFraction + (retInc * 0.18));
   }
 
+
+
   // Mitigated values
   const finalRunoffVolume = baseRunoffVolumeM3 * (1 - totalRunoffMitigationFraction);
   const finalPeakDischarge = basePeakDischargeCms * (1 - totalRunoffMitigationFraction * 0.9);
@@ -210,7 +212,7 @@ export function buildActiveStormScenario(
   const lakeRise = parseFloat(((result.lakeInflowVolumeMcm / 13.7) * 1.6).toFixed(2));
 
   return {
-    id: `storm-${params.rainfallMm}mm-sim`,
+id: `storm-${params.rainfallMm}mm-sim`,
     scenarioName: name,
     rainfallMm: params.rainfallMm,
     durationHours: params.durationHours,
