@@ -3,6 +3,7 @@
 import React from 'react';
 import { Intervention, SimulationResult } from '@/lib/types';
 import {
+  ArrowLeft,
   CheckCircle2,
   Download,
   FileCheck2,
@@ -16,6 +17,8 @@ import {
 import { STUDY_AREA } from '@/lib/geo-data';
 
 interface GovernmentDprModalProps {
+  onBack?: () => void;
+  backButtonLabel?: string;
   isOpen: boolean;
   onClose: () => void;
   activeInterventions: Intervention[];
@@ -26,6 +29,8 @@ interface GovernmentDprModalProps {
 export const GovernmentDprModal: React.FC<GovernmentDprModalProps> = ({
   isOpen,
   onClose,
+  onBack,
+  backButtonLabel = 'Back',
   activeInterventions,
   simulationResult,
   activeStrategyPlan,
@@ -110,11 +115,39 @@ export const GovernmentDprModal: React.FC<GovernmentDprModalProps> = ({
             borderBottom: '1px solid var(--border-subtle)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 260px', minWidth: 0 }}>
-            <FileText size={18} color="var(--color-forest)" />
-            <span style={{ fontWeight: 600, fontSize: '0.90rem', color: 'var(--color-forest)' }}>
-              Official Government DPR Generator (PMKSY & MGNREGA)
-            </span>
+<div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: '1 1 260px', minWidth: 0, flexWrap: 'wrap' }}>
+            <button
+              onClick={onBack || onClose}
+              className="apple-pressable"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                color: 'var(--color-forest)',
+                backgroundColor: '#FFFFFF',
+                border: '1px solid var(--border-strong)',
+                borderRadius: 'var(--radius-sm)',
+                cursor: 'pointer',
+                boxShadow: 'var(--shadow-subtle)',
+                transition: 'all 0.15s ease',
+              }}
+              title="Return to previous view"
+            >
+              <ArrowLeft size={16} />
+              <span>{backButtonLabel}</span>
+            </button>
+
+            <div style={{ width: '1px', height: '22px', backgroundColor: 'var(--border-strong)' }} />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FileText size={18} color="var(--color-forest)" />
+              <span style={{ fontWeight: 600, fontSize: '0.90rem', color: 'var(--color-forest)' }}>
+                Official Government DPR Generator (PMKSY & MGNREGA)
+              </span>
+            </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', flexWrap: 'wrap', gap: '8px', flexShrink: 0 }}>
@@ -472,6 +505,72 @@ export const GovernmentDprModal: React.FC<GovernmentDprModalProps> = ({
                 Chairman, District Watershed Development Agency (DWDA)
               </div>
             </div>
+          </div>
+        </div>
+                {/* Modal Bottom Bar (Screen Only) */}
+        <div
+          className="no-print"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 24px',
+            backgroundColor: '#F5F2EB',
+            borderTop: '1px solid var(--border-subtle)',
+          }}
+        >
+          <button
+            onClick={onBack || onClose}
+            className="apple-pressable"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '7px 16px',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              color: 'var(--color-forest)',
+              backgroundColor: '#FFFFFF',
+              border: '1px solid var(--border-strong)',
+              borderRadius: 'var(--radius-sm)',
+              cursor: 'pointer',
+              boxShadow: 'var(--shadow-subtle)',
+            }}
+          >
+            <ArrowLeft size={16} />
+            <span>{backButtonLabel}</span>
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              onClick={handlePrint}
+              className="btn btn-primary apple-pressable"
+              style={{
+                padding: '7px 16px',
+                fontSize: '0.78rem',
+                gap: '6px',
+                boxShadow: '0 2px 8px rgba(30, 58, 43, 0.25)',
+              }}
+            >
+              <Printer size={14} />
+              Print / Save Official PDF
+            </button>
+            <button
+              onClick={onClose}
+              className="apple-pressable"
+              style={{
+                padding: '7px 16px',
+                fontSize: '0.78rem',
+                fontWeight: 600,
+                color: 'var(--secondary-text)',
+                backgroundColor: 'transparent',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-sm)',
+                cursor: 'pointer',
+              }}
+            >
+              Close
+            </button>
           </div>
         </div>
       </div>
